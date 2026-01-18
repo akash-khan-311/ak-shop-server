@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { Server } from 'http'
 import app from './app'
 import config from './app/config'
+import seedSuperAdmin from './app/DB'
 
 let server: Server
 
@@ -11,7 +12,7 @@ async function main() {
     // Connect to NoSQL DB
     await mongoose.connect(config.mongo_database_url as string)
     console.log('Mongoose with MongoDB connected successfully')
-
+    seedSuperAdmin()
     // starting the server
     server = app.listen(config.port, () => {
       console.log(`🚀 Server running on port ${config.port}`)

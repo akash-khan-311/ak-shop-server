@@ -7,7 +7,8 @@ export const USER_ROLE = {
   admin: 'admin',
   user: 'user',
   developer: 'developer',
-  editor: 'editor'
+  editor: 'editor',
+  vendor: 'vendor'
 } as const
 
 /**

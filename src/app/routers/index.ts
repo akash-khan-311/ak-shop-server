@@ -1,5 +1,7 @@
 import express from 'express'
 import { UserRoutes } from '../modules/user/user.route'
+import { AuthRoutes } from '../modules/Auth/auth.route'
+import { CategoryRoutes } from '../modules/category/category.route'
 
 /**
  * Main router configuration
@@ -17,7 +19,9 @@ const moduleRoutes = [
   {
     path: '/users',
     route: UserRoutes
-  }
+  },
+  { path: '/auth', route: AuthRoutes },
+  { path: '/category', route: CategoryRoutes }
 ]
 
 /**

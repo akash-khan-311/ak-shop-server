@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import { TErrorSource, TGenericErrorResponse } from '../interfaces/errors';
+import mongoose from 'mongoose'
+import { TErrorSource, TGenericErrorResponse } from '../interfaces/errors'
 
 /**
  * Handle Mongoose ValidationError
@@ -14,15 +14,15 @@ const handleMongooseValidationError = (
       return {
         path: val.path,
         message: val.message
-      };
+      }
     }
-  );
+  )
 
   return {
     statusCode: 400,
     message: 'Validation Error',
     errorSources
-  };
-};
+  }
+}
 
-export default handleMongooseValidationError;
+export default handleMongooseValidationError

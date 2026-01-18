@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import AppError from '../errors/AppError';
-import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken'
+import AppError from '../errors/AppError'
+import jwt, { JwtPayload, Secret, SignOptions } from 'jsonwebtoken'
 import { TJwtPayload } from '../interfaces/jwtToken_interface'
+import httpStatus from 'http-status'
 
 /**
  * Create a JWT token
@@ -11,12 +12,15 @@ import { TJwtPayload } from '../interfaces/jwtToken_interface'
  * @returns JWT token string
  */
 export const createToken = (
-  jwtPayload: TJwtPayload,
-  jwtSecret: string,
+  jwtPayload: { userId: string; role: string },
+  secret: Secret,
   expiresIn: string
-): string => {
-  const options: SignOptions = { expiresIn: expiresIn as any }
-  return jwt.sign(jwtPayload, jwtSecret, options)
+) => {
+  const options: SignOptions = {
+    expiresIn: expiresIn as SignOptions['expiresIn']
+  }
+
+  return jwt.sign(jwtPayload, secret, options)
 }
 
 /**
@@ -26,13 +30,11 @@ export const createToken = (
  * @returns Decoded JWT payload
  * @throws AppError if token is invalid or expired
  */
-export const verifyToken = (token: string, secret: string): JwtPayload => {
-  try {
-    const decoded = jwt.verify(token, secret) as JwtPayload
-    return decoded
-  } catch (err: any) {
-    throw new AppError(401, '', err.message || 'Invalid or expired token!')
-  }
+export const verifyToken = (token: string, secret: string) => {
+  // verify token
+  if (!token)
+    throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized')
+  return jwt.verify(token, secret) as JwtPayload
 }
 
 /**
@@ -214,7 +216,8 @@ export const maskSensitiveInfo = (
     case 'phone': {
       const digitsOnly = value.replace(/\D/g, '')
       if (digitsOnly.length === 11) {
-        maskedValue = digitsOnly.substring(0, 3) + '****' + digitsOnly.substring(7)
+        maskedValue =
+          digitsOnly.substring(0, 3) + '****' + digitsOnly.substring(7)
         break
       }
       maskedValue = value
@@ -232,13 +235,21 @@ export const maskSensitiveInfo = (
  */
 export const generateRandomBarcodeId = (): string => {
   // Generate each part with the required number of digits (with leading zeros if needed)
-  const part1 = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-  const part2 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-  const part3 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-  const part4 = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  const part1 = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, '0')
+  const part2 = Math.floor(Math.random() * 100)
+    .toString()
+    .padStart(2, '0')
+  const part3 = Math.floor(Math.random() * 100)
+    .toString()
+    .padStart(2, '0')
+  const part4 = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, '0')
 
   // Example format: 153.04.55.022
-  return part1 + '.' + part2 + '.' + part3 + '.' + part4;
+  return part1 + '.' + part2 + '.' + part3 + '.' + part4
 }
 
 /** Generate a unique transaction ID
@@ -247,32 +258,40 @@ export const generateRandomBarcodeId = (): string => {
  * @returns Unique transaction ID string
  */
 export function generateTransactionId(totalLength = 12) {
-  if (totalLength < 2) throw new Error('Minimum length is 2');
+  if (totalLength < 2) throw new Error('Minimum length is 2')
 
   // Allocate 1-3 characters for counter based on total length
-  const counterLength = Math.min(3, totalLength - 1);
-  const timeLength = totalLength - counterLength;
-  
-  const now = Date.now();
-  const maxCounter = 36 ** counterLength; // Base36 counter capacity
+  const counterLength = Math.min(3, totalLength - 1)
+  const timeLength = totalLength - counterLength
+
+  const now = Date.now()
+  const maxCounter = 36 ** counterLength // Base36 counter capacity
 
   // Use a closure to maintain state between calls
-  let lastTime = 0;
-  let counter = 0;
+  let lastTime = 0
+  let counter = 0
 
   // Update counter with overflow protection
   if (now === lastTime) {
-    counter = (counter + 1) % maxCounter;
+    counter = (counter + 1) % maxCounter
   } else {
-    lastTime = now;
-    counter = 0;
+    lastTime = now
+    counter = 0
   }
 
   // Generate time part (base36) - take the last 'timeLength' characters
-  const timePart = now.toString(36).padStart(timeLength, '0').slice(-timeLength).toUpperCase();
-  
-  // Generate counter part (base36) - pad to counterLength and take last characters
-  const counterPart = counter.toString(36).padStart(counterLength, '0').slice(-counterLength).toUpperCase();
+  const timePart = now
+    .toString(36)
+    .padStart(timeLength, '0')
+    .slice(-timeLength)
+    .toUpperCase()
 
-  return timePart + counterPart;
+  // Generate counter part (base36) - pad to counterLength and take last characters
+  const counterPart = counter
+    .toString(36)
+    .padStart(counterLength, '0')
+    .slice(-counterLength)
+    .toUpperCase()
+
+  return timePart + counterPart
 }

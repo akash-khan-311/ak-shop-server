@@ -1,47 +1,74 @@
 /* eslint-disable prettier/prettier */
 import z from 'zod'
 
+export const addressSchema = z.object({
+  division: z.string().optional(),
+  district: z.string().optional(),
+  upazila: z.string().optional(),
+  union: z.string().optional(),
+  fullAddress: z.string().optional()
+})
 export const registerSchema = z
   .object({
-    name: z.string().min(2, 'Name is required'),
-    email: z.string().email('Invalid email address').optional(),
-    phone: z
-      .string()
-      .min(10, 'Phone number must be at least 10 digits')
-      .optional(),
-    password: z
-      .string()
-      .min(6, 'Password must be at least 6 characters')
-      .optional()
+    body: z.object({
+      name: z.string().min(2, 'Name is required'),
+      email: z.string().email('Invalid email'),
+      phone: z.string().min(11, 'Phone must be valid'),
+      password: z.string().min(8, 'Password must be at least 8 characters')
+    })
   })
   .superRefine((data, ctx) => {
-    // Either email or phone or password must exist for local signup
-    if (!data.email && !data.phone) {
+    if (!data.body.email && !data.body.phone) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Either email or phone number is required'
+        message: 'Email or phone is required'
       })
     }
 
-    // If email exists, password is required
-    if (data.email && !data.password) {
+    if (data.body.email && !data.body.password) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Password is required when email is provided'
+        message: 'Password is required when email is used'
       })
     }
   })
 
-export const socialLoginSchema = z.object({
-  name: z.string().min(2, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  provider: z.enum(['google', 'facebook']).pipe(
-    z.enum(['google', 'facebook'], {
-      errorMap: () => ({ message: 'Provider must be Google or Facebook' })
-    })
-  ),
-  providerId: z.string().min(1, 'Provider ID is required')
+export const getSingleUserSchema = z.object({
+  params: z.object({
+    identifier: z
+      .string()
+      .min(3, 'Identifier is required')
+      .refine(
+        value =>
+          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || // email
+          /^[0-9]{10,15}$/.test(value), // phone
+        {
+          message: 'Must be a valid email or phone number'
+        }
+      )
+  })
+})
+
+export const updateProfileSchema = z.object({
+  body: z.object({
+    name: z.string().min(2).optional(),
+    avatar: z.string().url().optional(),
+    dateOfBirth: z.string().optional(),
+    gender: z.enum(['male', 'female', 'other']).optional(),
+    address: z
+      .object({
+        division: z.string().optional(),
+        district: z.string().optional(),
+        upazila: z.string().optional(),
+        union: z.string().optional(),
+        fullAddress: z.string().optional()
+      })
+      .optional()
+  })
 })
 export const UserValidation = {
-  registerSchema
+  getSingleUserSchema,
+  registerSchema,
+  updateProfileSchema,
+  addressSchema
 }
