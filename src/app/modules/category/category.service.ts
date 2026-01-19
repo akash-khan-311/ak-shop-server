@@ -1,5 +1,5 @@
 import AppError from '../../errors/AppError'
-import { TCategory } from './category.interface'
+import { TCategory, TSubCategory } from './category.interface'
 import { Category } from './category.model'
 import httpStatus from 'http-status'
 export const createCategoryIntoDB = async (payload: TCategory) => {
@@ -10,7 +10,28 @@ export const createCategoryIntoDB = async (payload: TCategory) => {
   const category = await Category.create(payload)
   return category
 }
+export const createSubCategoryIntoDb = async (
+  id: string,
+  payload: TSubCategory
+) => {
+  const category = await Category.findById(id)
+  if (!category) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Category not found 😒')
+  }
+  const isExists = category.subcategories?.find(
+    (subCat: TSubCategory) => subCat.slug === payload.slug
+  )
 
+  if (isExists) {
+    throw new AppError(
+      httpStatus.CONFLICT,
+      'Subcategory already exists in this category 😒'
+    )
+  }
+  category.subcategories?.push(payload)
+  await category.save()
+  return category
+}
 export const getAllCategoriesFromDB = async () => {
   const categories = await Category.find({ isDeleted: false })
   return categories
@@ -61,5 +82,6 @@ export const CategoryService = {
   getSingleCategoryFromDb,
   updateCategoryIntoDb,
   deleteCategoryFromDb,
-  toggleCategoryPublishIntoDb
+  toggleCategoryPublishIntoDb,
+  createSubCategoryIntoDb
 }

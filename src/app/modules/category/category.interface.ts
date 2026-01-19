@@ -12,7 +12,7 @@ export type TCategory = {
   image: string
   name: string
   slug: Slug
-  subcategories: TSubCategory[]
+  subcategories?: TSubCategory[]
   isDeleted?: boolean
   published?: boolean
 }

@@ -38,6 +38,7 @@ const categorySchema = new Schema<TCategory>(
     },
     subcategories: {
       type: [subCategorySchema],
+
       default: []
     },
     isDeleted: {

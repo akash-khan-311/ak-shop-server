@@ -14,6 +14,17 @@ export const createCategory = catchAsync(async (req, res) => {
   }
 })
 
+export const createSubCategory = catchAsync(async (req, res) => {
+  const id = req.params.id
+  const result = await CategoryService.createSubCategoryIntoDb(id, req.body)
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: 'Subcategory created successfully',
+    data: result
+  })
+})
+
 export const getAllCategories = catchAsync(async (req, res) => {
   const result = await CategoryService.getAllCategoriesFromDB()
   sendResponse(res, {
@@ -72,5 +83,6 @@ export const CategoryController = {
   getSingleCategory,
   updateCategory,
   deleteCategory,
-  toggleCategoryPublished
+  toggleCategoryPublished,
+  createSubCategory
 }

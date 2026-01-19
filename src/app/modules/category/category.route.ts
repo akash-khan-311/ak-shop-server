@@ -13,6 +13,13 @@ router.post(
   CategoryController.createCategory
 )
 
+router.post(
+  '/:id/create-subcategory',
+  auth('admin', 'superAdmin', 'vendor'),
+  validateRequest(CategoryValidation.subCategoryValidationSchema),
+  CategoryController.createSubCategory
+)
+
 router.get(
   '/',
   auth('admin', 'superAdmin', 'vendor'),
