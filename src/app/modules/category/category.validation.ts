@@ -23,9 +23,10 @@ export const updateStatusValidationSchema = z.object({
 
 export const updateCategoryValidationSchema = z.object({
   body: z.object({
-    name: z.string().min(1),
-    slug: z.string().min(1),
-    subcategories: z.array(subCategoryValidationSchema).optional()
+    name: z.string().min(1).optional(),
+    slug: z.string().min(1).optional(),
+    subCategories: z.array(subCategoryValidationSchema).optional(),
+    published: z.boolean().optional()
   })
 })
 

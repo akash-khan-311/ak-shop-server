@@ -3,11 +3,14 @@ import validateRequest from '../../middlewares/validateRequest'
 import { CategoryValidation } from './category.validation'
 import { CategoryController } from './category.controller'
 import auth from '../../middlewares/auth'
-
+import multer from 'multer'
+import { uploadCategoryImage } from '../../middlewares/multer'
+const storage = multer.memoryStorage()
 const router = express.Router()
-
+const upload = multer({ storage })
 router.post(
   '/create',
+  upload.single('image'),
   auth('admin', 'superAdmin', 'vendor'),
   validateRequest(CategoryValidation.createCategoryValidationSchema),
   CategoryController.createCategory
@@ -33,11 +36,16 @@ router.get(
 router.patch(
   '/:id',
   auth('admin', 'superAdmin', 'vendor'),
+  uploadCategoryImage.single('image'),
   validateRequest(CategoryValidation.updateCategoryValidationSchema),
   CategoryController.updateCategory
 )
 
-router.delete('/:id', CategoryController.deleteCategory)
+router.delete(
+  '/delete/:id',
+  auth('admin', 'superAdmin', 'vendor'),
+  CategoryController.deleteCategory
+)
 router.patch(
   '/change-status/:id',
   auth('admin', 'superAdmin', 'vendor'),

@@ -1,4 +1,8 @@
 export type TBrand = string
+export type TCategoryImage = {
+  url: string
+  public_id: string
+}
 export type TSubCategory = {
   _id?: string
   name: string
@@ -9,7 +13,7 @@ export type TSubCategory = {
 export type Slug = string
 export type TCategory = {
   _id?: string
-  image: string
+  image?: TCategoryImage
   name: string
   slug: Slug
   subcategories?: TSubCategory[]
