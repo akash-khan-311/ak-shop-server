@@ -10,8 +10,8 @@ const router = express.Router()
 const upload = multer({ storage })
 router.post(
   '/create',
-  upload.single('image'),
   auth('admin', 'superAdmin', 'vendor'),
+  upload.single('image'),
   validateRequest(CategoryValidation.createCategoryValidationSchema),
   CategoryController.createCategory
 )
@@ -19,6 +19,7 @@ router.post(
 router.post(
   '/:id/create-subcategory',
   auth('admin', 'superAdmin', 'vendor'),
+  upload.single('image'),
   validateRequest(CategoryValidation.subCategoryValidationSchema),
   CategoryController.createSubCategory
 )
@@ -40,11 +41,26 @@ router.patch(
   validateRequest(CategoryValidation.updateCategoryValidationSchema),
   CategoryController.updateCategory
 )
+router.patch(
+  '/subcategory/:id',
+  upload.single('image'),
+  auth('admin', 'vendor', 'superAdmin'),
+  CategoryController.updateSubCategory
+)
+
+router.get('/subcategory/:id', CategoryController.getSingleSubCategory)
+
+router.get('/all/subcategories', CategoryController.getAllSubCategories)
 
 router.delete(
-  '/delete/:id',
+  '/delete',
   auth('admin', 'superAdmin', 'vendor'),
   CategoryController.deleteCategory
+)
+router.delete(
+  '/subcategory/delete',
+  auth('admin', 'vendor', 'superAdmin'),
+  CategoryController.deleteSubCategory
 )
 router.patch(
   '/change-status/:id',

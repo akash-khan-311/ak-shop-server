@@ -2,6 +2,8 @@ import express from 'express'
 import { UserRoutes } from '../modules/user/user.route'
 import { AuthRoutes } from '../modules/Auth/auth.route'
 import { CategoryRoutes } from '../modules/category/category.route'
+import { ProductRoutes } from '../modules/products/product.route'
+import { SpecTemplateRoutes } from '../modules/specTemplate/specTemplate.route'
 
 /**
  * Main router configuration
@@ -21,7 +23,9 @@ const moduleRoutes = [
     route: UserRoutes
   },
   { path: '/auth', route: AuthRoutes },
-  { path: '/category', route: CategoryRoutes }
+  { path: '/category', route: CategoryRoutes },
+  { path: '/spec-template', route: SpecTemplateRoutes },
+  { path: '/product', route: ProductRoutes }
 ]
 
 /**
@@ -29,6 +33,10 @@ const moduleRoutes = [
  * This loop iterates through the moduleRoutes array and registers each route
  * with its corresponding path
  */
-moduleRoutes.forEach(route => router.use(route.path, route.route))
+moduleRoutes.forEach(route => {
+  if (route.route) {
+    router.use(route.path, route.route)
+  }
+})
 
 export default router

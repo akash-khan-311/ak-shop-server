@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import NodeCache from 'node-cache';
+import NodeCache from 'node-cache'
 
 // Initialize cache with default options (stdTTL: 0 = never expire, checkperiod: 600 = 10 minutes)
 export const myCache = new NodeCache({
   stdTTL: 0, // Default time to live in seconds (0 = never expire)
   checkperiod: 600, // Period in seconds to check for expired items
   useClones: false // For better performance with large objects
-});
+})
 
 /**
  * Create or update cache entry in RAM
@@ -22,14 +22,14 @@ export const create_cache_into_RAM = (
 ): boolean => {
   try {
     if (ttl && ttl > 0) {
-      return myCache.set(key, value, ttl);
+      return myCache.set(key, value, ttl)
     }
-    return myCache.set(key, value);
+    return myCache.set(key, value)
   } catch (error) {
-    console.error('Cache creation error:', error);
-    return false;
+    console.error('Cache creation error:', error)
+    return false
   }
-};
+}
 
 /**
  * Retrieve cached value from RAM
@@ -38,12 +38,12 @@ export const create_cache_into_RAM = (
  */
 export const get_cache_from_RAM = (key: string): any | undefined => {
   try {
-    return myCache.get(key);
+    return myCache.get(key)
   } catch (error) {
-    console.error('Cache retrieval error:', error);
-    return undefined;
+    console.error('Cache retrieval error:', error)
+    return undefined
   }
-};
+}
 
 /**
  * Delete specific cache entry from RAM
@@ -52,12 +52,12 @@ export const get_cache_from_RAM = (key: string): any | undefined => {
  */
 export const delete_cache_from_RAM = (key: string): number => {
   try {
-    return myCache.del(key);
+    return myCache.del(key)
   } catch (error) {
-    console.error('Cache deletion error:', error);
-    return 0;
+    console.error('Cache deletion error:', error)
+    return 0
   }
-};
+}
 
 /**
  * Clear all cache entries
@@ -65,12 +65,12 @@ export const delete_cache_from_RAM = (key: string): number => {
  */
 export const clear_all_cache = (): void => {
   try {
-    myCache.flushAll();
-    console.log('All cache entries cleared');
+    myCache.flushAll()
+    console.log('All cache entries cleared')
   } catch (error) {
-    console.error('Cache clearing error:', error);
+    console.error('Cache clearing error:', error)
   }
-};
+}
 
 /**
  * Get cache statistics
@@ -78,12 +78,12 @@ export const clear_all_cache = (): void => {
  */
 export const get_cache_stats = () => {
   try {
-    return myCache.getStats();
+    return myCache.getStats()
   } catch (error) {
-    console.error('Cache stats error:', error);
-    return null;
+    console.error('Cache stats error:', error)
+    return null
   }
-};
+}
 
 /**
  * Check if key exists in cache
@@ -92,12 +92,12 @@ export const get_cache_stats = () => {
  */
 export const has_cache_key = (key: string): boolean => {
   try {
-    return myCache.has(key);
+    return myCache.has(key)
   } catch (error) {
-    console.error('Cache key check error:', error);
-    return false;
+    console.error('Cache key check error:', error)
+    return false
   }
-};
+}
 
 /**
  * Get all cache keys
@@ -105,12 +105,12 @@ export const has_cache_key = (key: string): boolean => {
  */
 export const get_all_cache_keys = (): string[] => {
   try {
-    return myCache.keys();
+    return myCache.keys()
   } catch (error) {
-    console.error('Cache keys retrieval error:', error);
-    return [];
+    console.error('Cache keys retrieval error:', error)
+    return []
   }
-};
+}
 
 /**
  * Get TTL for a specific key
@@ -119,9 +119,9 @@ export const get_all_cache_keys = (): string[] => {
  */
 export const get_cache_ttl = (key: string): number => {
   try {
-    return myCache.getTtl(key) || 0;
+    return myCache.getTtl(key) || 0
   } catch (error) {
-    console.error('Cache TTL retrieval error:', error);
-    return 0;
+    console.error('Cache TTL retrieval error:', error)
+    return 0
   }
-};
+}

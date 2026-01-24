@@ -52,3 +52,21 @@ export const verifyUserCredentials = async (
 
   return user
 }
+export const generateUniqueUserId = async (): Promise<number> => {
+  let isUnique = false;
+  let userId = 0;
+
+  while (!isUnique) {
+
+    userId = Math.floor(100000 + Math.random() * 900000);
+
+
+    const exists = await User.exists({ id: userId });
+
+    if (!exists) {
+      isUnique = true;
+    }
+  }
+
+  return userId;
+};

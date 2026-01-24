@@ -30,9 +30,21 @@ export const updateCategoryValidationSchema = z.object({
   })
 })
 
+export const deleteSubCategoryValidationSchema = z
+  .object({
+    body: z.object({
+      id: z.string().min(1).optional(),
+      ids: z.array(z.string().min(1)).optional()
+    })
+  })
+  .refine(data => !!(data.body.id || (data.body.ids && data.body.ids.length)), {
+    message: 'Provide either id or ids to delete subcategory'
+  })
+
 export const CategoryValidation = {
   createCategoryValidationSchema,
   updateCategoryValidationSchema,
   subCategoryValidationSchema,
-  updateStatusValidationSchema
+  updateStatusValidationSchema,
+  deleteSubCategoryValidationSchema
 }

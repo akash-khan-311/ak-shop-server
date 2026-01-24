@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TErrorSource, TGenericErrorResponse } from '../interfaces/errors';
+import { TErrorSource, TGenericErrorResponse } from '../interfaces/errors'
 
 /**
  * Handle Mongoose duplicate key error (11000)
@@ -8,22 +8,24 @@ import { TErrorSource, TGenericErrorResponse } from '../interfaces/errors';
  */
 const handleMongooseDuplicateError = (err: any): TGenericErrorResponse => {
   // Extract field name and value from error message
-  const match = err.message.match(/dup key: \{\s*([^:]+):\s*"([^"]+)"\s*\}/);
-  const fieldName = match?.[1]?.trim() || 'unknown_field';
-  const fieldValue = match?.[2]?.trim() || 'unknown_value';
-  
+  const match = err.message.match(/dup key: \{\s*([^:]+):\s*"([^"]+)"\s*\}/)
+  const fieldName = match?.[1]?.trim() || 'unknown_field'
+  const fieldValue = match?.[2]?.trim() || 'unknown_value'
+
   const errorSources: TErrorSource[] = [
     {
       path: fieldName,
-      message: fieldValue ? `${fieldValue} is already exists!` : 'Duplicate value detected'
+      message: fieldValue
+        ? `${fieldValue} is already exists!`
+        : 'Duplicate value detected'
     }
-  ];
+  ]
 
   return {
     statusCode: 409,
     message: 'Duplicate entry violation',
     errorSources
-  };
-};
+  }
+}
 
-export default handleMongooseDuplicateError;
+export default handleMongooseDuplicateError

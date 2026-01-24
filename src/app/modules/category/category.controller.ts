@@ -44,11 +44,58 @@ export const createCategory = catchAsync(async (req, res) => {
 
 export const createSubCategory = catchAsync(async (req, res) => {
   const id = req.params.id
-  const result = await CategoryService.createSubCategoryIntoDb(id, req.body)
+  if (typeof req.body.brands === 'string') {
+    req.body.brands = JSON.parse(req.body.brands)
+  }
+  const result = await CategoryService.createSubCategoryIntoDb(
+    id,
+    req.body,
+    req.file
+  )
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: 'Subcategory created successfully',
+    data: result
+  })
+})
+export const getSingleSubCategory = catchAsync(async (req, res) => {
+  const id = req.params.id
+  const result = await CategoryService.getSingleSubCategoryFromDb(id)
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: 'Subcategory found successfully',
+    data: result
+  })
+})
+export const updateSubCategory = catchAsync(async (req, res) => {
+  const id = req.params.id
+  const newImageFile = req.file
+  if (typeof req.body.brands === 'string') {
+    req.body.brands = JSON.parse(req.body.brands)
+  }
+
+  const result = await CategoryService.updateSubCategoryIntoDb(
+    id,
+    req.body,
+    newImageFile
+  )
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: 'Updated sub Category successfully',
+    data: result
+  })
+})
+
+export const getAllSubCategories = catchAsync(async (req, res) => {
+  const result = await CategoryService.getAllSubCategoriesFromDB()
+
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: 'Subcategories fetched successfully',
     data: result
   })
 })
@@ -58,6 +105,7 @@ export const getAllCategories = catchAsync(async (req, res) => {
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
+    message: 'Fetched All Categories',
     data: result
   })
 })
@@ -104,11 +152,31 @@ export const toggleCategoryPublished = catchAsync(async (req, res) => {
 })
 
 export const deleteCategory = catchAsync(async (req, res) => {
-  const result = await CategoryService.deleteCategoryFromDb(req.params.id)
+  const { ids } = req.body
+  const result = await CategoryService.deleteCategoryFromDb(ids)
+
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
-    message: 'Category deleted successfully',
+    message:
+      ids.length > 1
+        ? 'Categories deleted successfully'
+        : 'Category deleted successfully',
+    data: result
+  })
+})
+
+export const deleteSubCategory = catchAsync(async (req, res) => {
+  const { ids } = req.body
+  const result = await CategoryService.deleteSubCategoriesFromDb(ids)
+
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message:
+      ids.length > 1
+        ? 'Sub Categories deleted successfully'
+        : 'Sub Category deleted successfully',
     data: result
   })
 })
@@ -120,5 +188,9 @@ export const CategoryController = {
   updateCategory,
   deleteCategory,
   toggleCategoryPublished,
-  createSubCategory
+  createSubCategory,
+  getAllSubCategories,
+  getSingleSubCategory,
+  updateSubCategory,
+  deleteSubCategory
 }

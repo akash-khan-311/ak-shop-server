@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 export type AuthProvider = 'local' | 'google' | 'facebook'
 export interface IAddress {
   division?: string
@@ -9,6 +8,7 @@ export interface IAddress {
 }
 
 export interface IUser {
+  id: number
   name: string
   email?: string
   phone?: string

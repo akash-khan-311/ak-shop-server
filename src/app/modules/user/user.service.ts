@@ -3,7 +3,7 @@ import { JwtPayload } from 'jsonwebtoken'
 import { User } from './user.model'
 import bcrypt from 'bcryptjs'
 import httpStatus from 'http-status'
-import { verifyUserCredentials } from './user.utls'
+import { generateUniqueUserId, verifyUserCredentials } from './user.utls'
 import config from '../../config'
 import { createToken } from '../../utils/commonUtils'
 import AppError from '../../errors/AppError'
@@ -18,14 +18,15 @@ export const createUserIntoDb = async (payload: IUser) => {
   if (!payload.email) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Email is required')
   }
+  const userId = await generateUniqueUserId()
   const hashedPassword = await bcrypt.hash(payload.password, 10)
-  await User.create({ ...payload, password: hashedPassword })
+  await User.create({ ...payload, id: userId, password: hashedPassword })
   const user = await verifyUserCredentials(payload.email, payload.password)
   // Generate Token
   const jwtPayload = {
     name: user.name,
     email: user.email,
-    userId: user._id,
+    userId: user.id,
     role: user.role,
     createdAt: user.createdAt
   }
