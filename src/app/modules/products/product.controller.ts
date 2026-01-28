@@ -19,6 +19,25 @@ export const createProduct = catchAsync(async (req, res) => {
     data: result
   })
 })
+export const getAllProducts = catchAsync(async (req, res) => {
+  const result = await ProductService.getAllProductFromDb()
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: 'Products fetched successfully',
+    data: result
+  })
+})
+export const getSingleProduct = catchAsync(async (req, res) => {
+  const id = req.params.id
+  const result = await ProductService.getSingleProductFromDb(id)
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: 'Product fetched successfully',
+    data: result
+  })
+})
 export const updateProduct = catchAsync(async (req, res) => {
   const id = req.params.id
 
@@ -52,4 +71,10 @@ export const deleteProduct = catchAsync(async (req, res) => {
     data: result
   })
 })
-export const ProductController = { createProduct, updateProduct, deleteProduct }
+export const ProductController = {
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getAllProducts,
+  getSingleProduct
+}

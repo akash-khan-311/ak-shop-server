@@ -20,6 +20,8 @@ const buildSpecIndex = (specs: Record<string, any>) => {
   return out
 }
 
+
+
 const createProductIntoDB = async (
   payload: any,
   files?: Express.Multer.File[]
@@ -27,7 +29,7 @@ const createProductIntoDB = async (
   // effective fields
   const tpl = await SpecTemplateService.getEffectiveTemplateFromDB(
     payload.subcategorySlug,
-    payload.userId 
+    payload.vendorId
   )
 
   let uploadedImages
@@ -73,20 +75,20 @@ const createProductIntoDB = async (
     }
   }
 
-  const userId =
-    typeof payload.userId === 'string' &&
-      Types.ObjectId.isValid(payload.userId)
-      ? Types.ObjectId.createFromHexString(payload.userId)
+  const vendorId =
+    typeof payload.vendorId === 'string' &&
+      Types.ObjectId.isValid(payload.vendorId)
+      ? Types.ObjectId.createFromHexString(payload.vendorId)
       : null
 
-  if (!userId) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid user Id')
+  if (!vendorId) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid Vendor Id')
   }
 
   const doc = await Product.create({
     ...payload,
     images: uploadedImages,
-    userId,
+    vendorId,
     specifications: specs,
     specIndex: buildSpecIndex(specs)
   })
@@ -94,10 +96,26 @@ const createProductIntoDB = async (
   return doc
 }
 
+const getAllProductFromDb = async () => {
+  const products = await Product.find({ isDeleted: false })
+  if (!products.length) {
+    throw new AppError(httpStatus.NOT_FOUND, 'No products found')
+  }
+  return products
+}
+
+const getSingleProductFromDb = async (id: string) => {
+  const product = await Product.findOne({ _id: id, isDeleted: false })
+  if (!product) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Product not found')
+  }
+  return product
+}
+
 const updateProductIntoDB = async (
   id: string,
   payload: any,
-  files: Express.Multer.File[]
+  files?: Express.Multer.File[]
 ) => {
   const product = await Product.findOne({ _id: id, isDeleted: false })
   if (!product) throw new AppError(httpStatus.NOT_FOUND, 'Product not found 😒')
@@ -157,12 +175,14 @@ const deleteProductFromDB = async (id: string) => {
   await deleteManyFromCloudinary(publicIds)
 
   product.isDeleted = true
-  await product.save()
+  const result = await product.save()
 
-  return { message: 'Product deleted successfully ✅' }
+  return result
 }
 export const ProductService = {
   createProductIntoDB,
   updateProductIntoDB,
-  deleteProductFromDB
+  deleteProductFromDB,
+  getAllProductFromDb,
+  getSingleProductFromDb
 }

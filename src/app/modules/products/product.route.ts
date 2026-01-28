@@ -14,6 +14,8 @@ router.post(
   validateRequest(ProductValidation.createProductSchema),
   ProductController.createProduct
 )
+router.get('/', ProductController.getAllProducts)
+router.get('/:id', ProductController.getSingleProduct)
 router.patch(
   '/:id',
   auth('admin', 'superAdmin', 'vendor'),

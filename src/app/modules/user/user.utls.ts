@@ -19,7 +19,7 @@ export const verifyUserCredentials = async (
   email?: string,
   password?: string,
   phone?: string,
-  userId?: string
+  userId?: number
 ) => {
   let user
 
@@ -28,7 +28,7 @@ export const verifyUserCredentials = async (
   } else if (phone) {
     user = await User.findOne({ phone }).select('+password')
   } else if (userId) {
-    user = await User.findOne({ _id: userId }).select('+password')
+    user = await User.findOne({ id: userId }).select('+password')
   }
 
   if (!user) {
@@ -44,6 +44,9 @@ export const verifyUserCredentials = async (
   }
 
   if (password) {
+    if (!user.password) {
+      throw new AppError(httpStatus.FORBIDDEN, 'Incorrect Password')
+    }
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
       throw new AppError(httpStatus.FORBIDDEN, 'Incorrect Password')

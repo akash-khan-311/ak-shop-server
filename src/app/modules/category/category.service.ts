@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { name } from 'eslint-plugin-prettier/recommended'
@@ -84,7 +85,7 @@ export const createSubCategoryIntoDb = async (
     }
   }
 
-  ;(category.subcategories as unknown as any[])?.push({
+  ; (category.subcategories as unknown as any[])?.push({
     ...payload,
     image: imageData,
     brands: payload.brands || []
@@ -155,8 +156,13 @@ export const getSingleSubCategoryFromDb = async (id: string) => {
   }
 }
 
-export const getAllCategoriesFromDB = async () => {
+export const getAllCategoriesForVendorAndAdminFromDB = async () => {
   const categories = await Category.find({ isDeleted: false })
+  return categories
+}
+
+export const getAllCategoriesForCustomer = async () => {
+  const categories = await Category.find({ isDeleted: false, published: true })
   return categories
 }
 
@@ -367,8 +373,9 @@ export const deleteSubCategoriesFromDb = async (subCategoryIds: string[]) => {
 }
 
 export const CategoryService = {
+  getAllCategoriesForCustomer,
   createCategoryIntoDB,
-  getAllCategoriesFromDB,
+  getAllCategoriesForVendorAndAdminFromDB,
   getSingleCategoryFromDb,
   updateCategoryIntoDb,
   deleteCategoryFromDb,

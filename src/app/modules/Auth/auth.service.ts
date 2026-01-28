@@ -28,7 +28,7 @@ export const loginUserIntoDb = async (payload: TLoginUser) => {
   const jwtPayload = {
     name: user.name,
     email: user.email,
-    userId: user._id,
+    userId: user.id,
     role: user.role,
     createdAt: user.createdAt
   }
@@ -73,7 +73,7 @@ const refreshToken = async (token: string) => {
   const jwtPayload = {
     name: user.name,
     email: user.email,
-    userId: user._id,
+    userId: user.id,
     role: user.role,
     createdAt: user.createdAt
   }
@@ -97,7 +97,7 @@ export const changePasswordIntoDB = async (
 
   const hashedPassword = await bcrypt.hash(payload.newPassword, 10)
   await User.findOneAndUpdate(
-    { _id: userData.userId, role: userData.role },
+    { id: userData.userId, role: userData.role },
     { password: hashedPassword, passwordChangeAt: Date.now }
   )
 
@@ -106,8 +106,11 @@ export const changePasswordIntoDB = async (
 
 const forgetPasswordIntoDB = async (email: string) => {
   const user = await verifyUserCredentials(email)
+  if (!user?.email) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found')
+  }
   const jwtPayload = {
-    userId: user._id,
+    userId: user.id,
     role: user.role
   }
   const resetToken = createToken(
@@ -130,7 +133,7 @@ const forgetPasswordIntoDB = async (email: string) => {
     `
   }
 
-  await sendEmail(user.email, emailTemplate)
+  await sendEmail(user?.email, emailTemplate)
 }
 
 export const AuthService = {

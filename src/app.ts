@@ -11,6 +11,8 @@ import {
   get_cache_from_RAM
 } from './app/utils/node_cache'
 import { createProgressiveRateLimiter } from './app/middlewares/rateLimitingHandler'
+import { configurePassport } from './app/modules/Auth/passport'
+import passport from 'passport'
 const app: Application = express()
 
 // Enable trust proxy (if behind proxy)
@@ -73,6 +75,9 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use(cookieParser())
 app.use(bigIntSerializer)
+
+configurePassport()
+app.use(passport.initialize())
 
 // CORS configuration with dynamic origins
 app.use(

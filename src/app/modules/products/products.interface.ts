@@ -21,6 +21,6 @@ export type TProduct = {
   quantity: number
   availability: 'In Stock' | 'Out of Stock'
 
-  userId: string
+  vendorId: string
   specifications: Record<string, TSpecValue>
 }

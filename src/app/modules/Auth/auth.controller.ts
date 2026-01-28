@@ -1,13 +1,54 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable prettier/prettier */
 import config from '../../config'
 import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
 import httpStatus from 'http-status'
 import { AuthService } from './auth.service'
 import { JwtPayload } from 'jsonwebtoken'
+import { createToken } from '../../utils/commonUtils'
 
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: "lax" as const,
+  secure: false,
+  path: "/",
+};
+
+
+
+export const oauthSuccessHandler = async (req: any, res: any) => {
+  const user = req.user;
+
+  const jwtPayload = {
+    name: user.name,
+    email: user.email,
+    userId: user.id,
+    role: user.role,
+    createdAt: user.createdAt,
+  };
+
+  const accessToken = createToken(jwtPayload, config.jwt_access_token_secret!, config.jwt_access_token_expires_in!);
+  const refreshToken = createToken(jwtPayload, config.jwt_refresh_token_secret!, config.jwt_refresh_token_expires_in!);
+
+
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production" ? true : false,
+    sameSite: "lax",
+  });
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+  });
+
+  // ✅ frontend redirect
+  return res.redirect(`${config.client_side_url}/auth/callback?success=1`);
+};
 export const loginUser = catchAsync(async (req, res) => {
   const result = await AuthService.loginUserIntoDb(req.body)
-  const { refreshToken, accessToken, user } = result
+  const { refreshToken, accessToken } = result
   res.cookie('refreshToken', refreshToken, {
     secure: config.NODE_ENV === 'production' ? true : false,
     httpOnly: true
@@ -19,6 +60,17 @@ export const loginUser = catchAsync(async (req, res) => {
     data: { accessToken }
   })
 })
+export const logout = catchAsync(async (req, res) => {
+  res.clearCookie("accessToken", cookieOptions);
+  res.clearCookie("refreshToken", cookieOptions);
+
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "Logged out successfully",
+    data: null,
+  });
+});
 
 const refreshToken = catchAsync(async (req, res) => {
   const { refreshToken } = req.cookies
@@ -48,7 +100,7 @@ const changePassword = catchAsync(async (req, res) => {
 
 const forgetPassword = catchAsync(async (req, res) => {
   const { email } = req.body
-  const result = await AuthService.forgetPasswordIntoDB(email)
+  await AuthService.forgetPasswordIntoDB(email)
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
@@ -57,9 +109,12 @@ const forgetPassword = catchAsync(async (req, res) => {
   })
 })
 
+
+
 export const AuthController = {
   loginUser,
   refreshToken,
   forgetPassword,
-  changePassword
+  changePassword,
+  logout
 }

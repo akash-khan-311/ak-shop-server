@@ -34,7 +34,7 @@ const specTemplateSchema = new Schema(
     },
     fields: { type: [specFieldSchema], default: [] },
 
-    isPublished: { type: Boolean, default: true },
+    isPublished: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false }
   },
   { timestamps: true }

@@ -45,7 +45,16 @@ const config = {
   email_sender_email_app_pass: ensureEnv('EMAIL_SENDER_EMAIL_APP_PASS'),
   email_sender_name: ensureEnv('EMAIL_SENDER_NAME'),
   email_reply_to: ensureEnv('EMAIL_REPLY_TO'),
-  email_test_recipient: ensureEnv('EMAIL_TEST_RECIPIENTS')
+  email_test_recipient: ensureEnv('EMAIL_TEST_RECIPIENTS'),
+  google_client_id: ensureEnv('GOOGLE_CLIENT_ID'),
+  google_client_secret: ensureEnv('GOOGLE_CLIENT_SECRET'),
+  google_callback_url: ensureEnv('GOOGLE_CALLBACK_URL'),
+  github_client_id: ensureEnv('GITHUB_CLIENT_ID'),
+  github_client_secret: ensureEnv('GITHUB_CLIENT_SECRET'),
+  github_callback_url: ensureEnv('GITHUB_CALLBACK_URL'),
+  facebook_client_id: ensureEnv('FACEBOOK_CLIENT_ID'),
+  facebook_client_secret: ensureEnv('FACEBOOK_CLIENT_SECRET'),
+  facebook_callback_url: ensureEnv('FACEBOOK_CALLBACK_URL')
 }
 
 export default config

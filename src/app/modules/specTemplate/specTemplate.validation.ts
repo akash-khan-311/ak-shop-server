@@ -37,6 +37,15 @@ export const createSpecTemplateSchema = z.object({
     isPublished: z.boolean().optional()
   })
 })
+export const updateSpecTemplateSchema = z.object({
+  body: z.object({
+    categorySlug: z.string().optional(),
+    subcategorySlug: z.string().min(1).optional(),
+    userId: z.string().optional().nullable().optional(), // null => base
+    fields: z.array(fieldSchema).default([]).optional(),
+    isPublished: z.boolean().optional()
+  })
+})
 
 export const getEffectiveTemplateSchema = z.object({
   params: z.object({
@@ -47,7 +56,15 @@ export const getEffectiveTemplateSchema = z.object({
   })
 })
 
+export const deleteSpecTemplateSchema = z.object({
+  body: z.object({
+    ids: z.array(z.string().min(1)).min(1)
+  })
+})
+
 export const SpecTemplateValidation = {
   createSpecTemplateSchema,
-  getEffectiveTemplateSchema
+  getEffectiveTemplateSchema,
+  updateSpecTemplateSchema,
+  deleteSpecTemplateSchema
 }

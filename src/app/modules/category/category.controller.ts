@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import AppError from '../../errors/AppError'
 import catchAsync from '../../utils/catchAsync'
@@ -100,8 +101,8 @@ export const getAllSubCategories = catchAsync(async (req, res) => {
   })
 })
 
-export const getAllCategories = catchAsync(async (req, res) => {
-  const result = await CategoryService.getAllCategoriesFromDB()
+export const getAllCategoriesForAdminAndVendor = catchAsync(async (req, res) => {
+  const result = await CategoryService.getAllCategoriesForVendorAndAdminFromDB()
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
@@ -109,6 +110,17 @@ export const getAllCategories = catchAsync(async (req, res) => {
     data: result
   })
 })
+export const getAllCategoriesForCustomer = catchAsync(async (req, res) => {
+  const result = await CategoryService.getAllCategoriesForCustomer()
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: 'Fetched All Categories',
+    data: result
+  })
+})
+
+
 
 export const getSingleCategory = catchAsync(async (req, res) => {
   const id = req.params.id
@@ -144,9 +156,8 @@ export const toggleCategoryPublished = catchAsync(async (req, res) => {
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
-    message: `Category ${
-      result.published ? 'published' : 'unpublished'
-    } successfully`,
+    message: `Category ${result.published ? 'published' : 'unpublished'
+      } successfully`,
     data: result
   })
 })
@@ -182,8 +193,7 @@ export const deleteSubCategory = catchAsync(async (req, res) => {
 })
 
 export const CategoryController = {
-  createCategory,
-  getAllCategories,
+  createCategory, getAllCategoriesForCustomer, getAllCategoriesForAdminAndVendor,
   getSingleCategory,
   updateCategory,
   deleteCategory,

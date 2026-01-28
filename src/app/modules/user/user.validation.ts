@@ -40,8 +40,8 @@ export const getSingleUserSchema = z.object({
       .min(3, 'Identifier is required')
       .refine(
         value =>
-          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || // email
-          /^[0-9]{10,15}$/.test(value), // phone
+          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ||
+          /^[0-9]{10,15}$/.test(value),
         {
           message: 'Must be a valid email or phone number'
         }
@@ -66,9 +66,59 @@ export const updateProfileSchema = z.object({
       .optional()
   })
 })
+
+export const addAddressSchema = z.object({
+  body: z.object({
+    label: z.string().min(1).max(50).optional(),
+    type: z.enum(['shipping', 'billing'], {
+      required_error: 'Address type is required'
+    }),
+
+    division: z.string().optional(),
+    district: z.string().optional(),
+    upazila: z.string().optional(),
+    union: z.string().optional(),
+
+    fullAddress: z
+      .string({ required_error: 'Full address is required' })
+      .min(5, 'Full address must be at least 5 characters')
+      .max(300, 'Full address is too long'),
+
+    phone: z.string().min(7).max(20).optional(),
+    isDefault: z.boolean().optional()
+  })
+})
+
+
+export const removeAddressSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'User id is required'),
+    addressId: z.string().min(1, 'Address id is required')
+  })
+})
+
+
+export const setDefaultAddressSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'User id is required'),
+    addressId: z.string().min(1, 'Address id is required'),
+    type: z.enum(['shipping', 'billing'])
+  })
+})
+
+
+export const updateAvatarSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'User id is required')
+  })
+})
 export const UserValidation = {
   getSingleUserSchema,
   registerSchema,
   updateProfileSchema,
-  addressSchema
+  addressSchema,
+  addAddressSchema,
+  removeAddressSchema,
+  updateAvatarSchema,
+  setDefaultAddressSchema
 }

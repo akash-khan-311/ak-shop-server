@@ -8,6 +8,8 @@ const validateRequest = (schema: ZodTypeAny) => {
     try {
       await schema.parseAsync({
         body: req.body,
+        params: req.params,
+        query: req.query,
         cookies: req.cookies
       })
       next()
@@ -24,7 +26,6 @@ const validateRequest = (schema: ZodTypeAny) => {
         })
       }
 
-      // অন্য কোনো error
       return res.status(500).json({
         status: 500,
         success: false,

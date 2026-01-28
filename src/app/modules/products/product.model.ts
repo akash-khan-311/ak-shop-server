@@ -25,16 +25,15 @@ const productSchema = new Schema(
       index: true
     },
 
-    userId: {
+    vendorId: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: 'User',
+      ref: 'Vendor',
       index: true
     },
 
     brand: { type: String, required: true },
     color: { type: String, required: true },
-
     weight: { type: Number },
     length: { type: Number },
     width: { type: Number },

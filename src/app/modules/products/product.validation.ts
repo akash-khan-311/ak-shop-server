@@ -21,7 +21,7 @@ export const createProductSchema = z.object({
     quantity: z.string().min(1),
     availability: z.enum(['In Stock', 'Out of Stock']),
 
-    userId: z.string().min(1),
+    vendorId: z.string().min(1),
 
     specifications: z.string().optional() // 👈 JSON string
   })

@@ -25,13 +25,15 @@ router.post(
 )
 
 router.get(
-  '/',
-  auth('admin', 'superAdmin', 'vendor'),
-  CategoryController.getAllCategories
+  '/vendor',
+  auth('admin', 'vendor', 'superAdmin'),
+  CategoryController.getAllCategoriesForAdminAndVendor
 )
+
+router.get('/all', CategoryController.getAllCategoriesForCustomer)
 router.get(
   '/:id',
-  auth('admin', 'superAdmin', 'vendor'),
+
   CategoryController.getSingleCategory
 )
 router.patch(
