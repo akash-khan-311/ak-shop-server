@@ -4,6 +4,7 @@ import { AuthRoutes } from '../modules/Auth/auth.route'
 import { CategoryRoutes } from '../modules/category/category.route'
 import { ProductRoutes } from '../modules/products/product.route'
 import { SpecTemplateRoutes } from '../modules/specTemplate/specTemplate.route'
+import { ReviewRoutes } from '../modules/reviews/review.route'
 
 /**
  * Main router configuration
@@ -25,7 +26,8 @@ const moduleRoutes = [
   { path: '/auth', route: AuthRoutes },
   { path: '/category', route: CategoryRoutes },
   { path: '/spec-template', route: SpecTemplateRoutes },
-  { path: '/product', route: ProductRoutes }
+  { path: '/product', route: ProductRoutes },
+  { path: '/reviews', route: ReviewRoutes }
 ]
 
 /**

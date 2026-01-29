@@ -31,7 +31,7 @@ export interface IUser {
   dateOfBirth?: string
   gender?: 'male' | 'female' | 'other'
   addresses?: IUserAddress[];
-  role: 'user'
+  role: 'user' | 'admin' | 'superAdmin' | 'vendor'
   status: 'active' | 'blocked'
   isDeleted: boolean
   provider?: AuthProvider

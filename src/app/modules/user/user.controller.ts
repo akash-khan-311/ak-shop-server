@@ -5,6 +5,7 @@ import sendResponse from '../../utils/sendResponse'
 import { UserService } from './user.service'
 import httpStatus from 'http-status'
 
+
 export const registerUser = catchAsync(async (req, res) => {
   const result = await UserService.createUserIntoDb(req.body)
 
@@ -72,12 +73,13 @@ export const getAllUsers = catchAsync(async (req, res) => {
 })
 
 export const getMe = catchAsync(async (req, res) => {
-  console.log('this is user', req.user)
-  const result = await UserService.getMeFromDB(req.user as JwtPayload)
+
+  const user = req.user as JwtPayload
+  const result = await UserService.getMeFromDB(user)
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
-    message: `${req?.user?.role} found successfully`,
+    message: `${user?.role} found successfully`,
     data: result
   })
 })
