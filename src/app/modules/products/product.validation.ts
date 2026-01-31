@@ -23,7 +23,7 @@ export const createProductSchema = z.object({
 
     vendorId: z.string().min(1),
 
-    specifications: z.string().optional() // 👈 JSON string
+    specifications: z.string().optional()
   })
 })
 

@@ -1,3 +1,6 @@
+/* eslint-disable prettier/prettier */
+import mongoose from "mongoose"
+
 export type TSpecValue = string | number | boolean | string[] | number[]
 export type TProductImages = {
   url: string
@@ -7,10 +10,10 @@ export type TProduct = {
   productName: string
   category: string
   subcategory: string
-  image?: TProductImages[]
+  images?: TProductImages[]
   categorySlug: string
   subcategorySlug: string
-
+  status: 'active' | 'inactive'
   brand: string
   color: string
   weight?: number
@@ -20,7 +23,7 @@ export type TProduct = {
 
   quantity: number
   availability: 'In Stock' | 'Out of Stock'
-
-  vendorId: string
+  isDeleted: boolean
+  vendorId: mongoose.Types.ObjectId
   specifications: Record<string, TSpecValue>
 }

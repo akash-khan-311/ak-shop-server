@@ -21,6 +21,7 @@ export const oauthSuccessHandler = async (req: any, res: any) => {
   const user = req.user;
 
   const jwtPayload = {
+    _id: user._id,
     name: user.name,
     email: user.email,
     userId: user.id,

@@ -12,9 +12,9 @@ router.get('/product/:productId', validateRequest(ReviewValidation.getProductRev
 
 router.post('/', auth('user'), upload.array("images", 5), validateRequest(ReviewValidation.createReviewSchema), ReviewController.createReview)
 
-router.get('/vendor', auth('vendor', 'admin', 'superAdmin'), validateRequest(ReviewValidation.getVendorReviewsSchema), ReviewController.getVendorReviews)
+router.get('/vendor', auth('vendor'), validateRequest(ReviewValidation.getVendorReviewsSchema), ReviewController.getVendorReviews)
 
-router.get('/vendor/summary', auth('vendor', 'admin', 'superAdmin'), ReviewController.getVendorReviewSummary)
+router.get('/vendor/summary', auth('vendor'), ReviewController.getVendorReviewSummary)
 
 router.patch(
     "/:reviewId/reply",

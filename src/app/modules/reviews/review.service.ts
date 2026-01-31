@@ -11,34 +11,34 @@ import { cloudinary } from "../../config/cloudinary";
 export const createReviewIntoDb = async (payload: {
     productId: string; orderId?: string; rating: number, comment: string
 }, user: JwtPayload, files: Express.Multer.File[]) => {
-    const { productId, orderId, rating, comment } = payload;
-    const userId = Number((user as any)?.userId)
+    const { productId, rating, comment } = payload;
+    const userId = user._id
     const userName = (user as any)?.name;
     const userEmail = (user as any)?.email;
 
-    if (!Number.isFinite(userId)) throw new AppError(httpStatus.UNAUTHORIZED, "Invalid user for create review");
+    if (!userId) throw new AppError(httpStatus.UNAUTHORIZED, "Invalid user for create review");
     if (!payload.productId) throw new AppError(httpStatus.BAD_REQUEST, "ProductId required for create review");
     if (!mongoose.Types.ObjectId.isValid(payload.productId)) {
         throw new AppError(httpStatus.BAD_REQUEST, "Invalid productId for create review");
     }
 
-    const product = await Product.findOne({ _id: payload.productId })
+    const product = await Product.findOne({ _id: payload.productId, isDeleted: false })
     if (!product) throw new AppError(httpStatus.NOT_FOUND, "Product not found");
 
-    const vendorId = (product as any).userId; // ObjectId
+    const vendorId = (product as any).vendorId;
     if (!mongoose.Types.ObjectId.isValid(vendorId)) {
         throw new AppError(httpStatus.BAD_REQUEST, "Product vendor(userId) invalid");
     }
 
-    if (payload.orderId && mongoose.Types.ObjectId.isValid(payload.orderId)) {
-        const exists = await Review.findOne({
-            productId,
-            orderId,
-            userId,
-            isDeleted: false,
-        });
-        if (exists) throw new AppError(httpStatus.CONFLICT, "You already reviewed this order");
+    if (payload.orderId && !mongoose.Types.ObjectId.isValid(payload.orderId)) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Invalid orderId");
     }
+    const exists = await Review.findOne({
+        productId,
+        userId,
+        isDeleted: false,
+    });
+    if (exists) throw new AppError(httpStatus.CONFLICT, "You already reviewed this product");
     const images: { url: string; public_id: string }[] = [];
     if (Array.isArray(files) && files.length > 0) {
         for (const file of files) {
@@ -81,12 +81,13 @@ export const getProductReviewsFromDb = async (productId: string) => {
 }
 
 export const getVendorReviewsFromDb = async (user: JwtPayload, query: any) => {
-    const vendorId = Number((user as any)?.userId)
-    if (!Number.isFinite(vendorId)) throw new AppError(httpStatus.UNAUTHORIZED, 'invalid vendor')
+    const vendorId = user._id
+    if (!vendorId) throw new AppError(httpStatus.UNAUTHORIZED, 'invalid vendor')
+
 
     const page = Math.max(Number(query?.page || 1), 1);
     const limit = Math.min(Math.max(Number(query?.limit || 10), 1), 100);
-    const search = query?.search?.trim();
+    const search = (query?.searchTerm as string)?.trim();
     const status = query?.status || "all";
     const rating = query?.rating || "all";
     const productId = query?.productId;
@@ -123,8 +124,8 @@ export const getVendorReviewsFromDb = async (user: JwtPayload, query: any) => {
 }
 
 export const getVendorReviewSummaryFromDB = async (user: JwtPayload) => {
-    const vendorId = Number((user as any)?.userId);
-    if (!Number.isFinite(vendorId)) throw new AppError(httpStatus.UNAUTHORIZED, "Invalid vendor");
+    const vendorId = user._id
+    if (!vendorId) throw new AppError(httpStatus.UNAUTHORIZED, "Invalid vendor");
 
     const match = { vendorId, isDeleted: false };
 
@@ -164,7 +165,7 @@ export const replyToReviewFromDB = async (
     message: string,
     user: JwtPayload
 ) => {
-    const vendorId = Number((user as any)?.userId);
+    const vendorId = user._id
     const role = (user as any)?.role;
 
     if (!mongoose.Types.ObjectId.isValid(reviewId)) {

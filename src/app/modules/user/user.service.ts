@@ -28,6 +28,7 @@ export const createUserIntoDb = async (payload: IUser) => {
   const user = await verifyUserCredentials(payload.email, payload.password)
   // Generate Token
   const jwtPayload = {
+    _id: user._id,
     name: user.name,
     email: user.email,
     userId: user.id,

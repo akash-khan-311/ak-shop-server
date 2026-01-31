@@ -26,6 +26,7 @@ export const loginUserIntoDb = async (payload: TLoginUser) => {
   }
 
   const jwtPayload = {
+    _id: user._id,
     name: user.name,
     email: user.email,
     userId: user.id,
@@ -71,6 +72,7 @@ const refreshToken = async (token: string) => {
     userId
   )
   const jwtPayload = {
+    _id: user._id,
     name: user.name,
     email: user.email,
     userId: user.id,
