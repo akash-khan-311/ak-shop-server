@@ -27,7 +27,7 @@ const specTemplateSchema = new Schema(
       index: true
     },
 
-    userId: {
+    adminId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       default: null

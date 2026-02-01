@@ -20,7 +20,7 @@ const reviewImageSchema = new Schema(
 const reviewSchema = new Schema<IReview>(
     {
         productId: { type: Schema.Types.ObjectId, ref: "Product", required: true, index: true },
-        vendorId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+        adminId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
         orderId: { type: Schema.Types.ObjectId, ref: "Order", default: null },
         images: { type: [reviewImageSchema], default: [] },
         userId: { type: Number, required: true, index: true },

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import AppError from '../../errors/AppError'
@@ -31,8 +32,14 @@ export const createCategory = catchAsync(async (req, res) => {
     })
   }
 
-  const result = await CategoryService.createCategoryIntoDB(req.body, req.file)
 
+  const userId = (req.user as any)?._id;
+  const payload = {
+    ...req.body,
+    adminId: userId
+  }
+
+  const result = await CategoryService.createCategoryIntoDB(payload, req.file)
   if (result) {
     sendResponse(res, {
       status: httpStatus.OK,
@@ -48,9 +55,14 @@ export const createSubCategory = catchAsync(async (req, res) => {
   if (typeof req.body.brands === 'string') {
     req.body.brands = JSON.parse(req.body.brands)
   }
+  const userId = (req.user as any)?._id;
+  const payload = {
+    ...req.body,
+    adminId: userId
+  }
   const result = await CategoryService.createSubCategoryIntoDb(
     id,
-    req.body,
+    payload,
     req.file
   )
   sendResponse(res, {
@@ -101,8 +113,8 @@ export const getAllSubCategories = catchAsync(async (req, res) => {
   })
 })
 
-export const getAllCategoriesForAdminAndVendor = catchAsync(async (req, res) => {
-  const result = await CategoryService.getAllCategoriesForVendorAndAdminFromDB()
+export const getAllCategoriesForAdmin = catchAsync(async (req, res) => {
+  const result = await CategoryService.getAllCategoriesForAdminFromDB()
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
@@ -193,7 +205,7 @@ export const deleteSubCategory = catchAsync(async (req, res) => {
 })
 
 export const CategoryController = {
-  createCategory, getAllCategoriesForCustomer, getAllCategoriesForAdminAndVendor,
+  createCategory, getAllCategoriesForCustomer, getAllCategoriesForAdmin,
   getSingleCategory,
   updateCategory,
   deleteCategory,

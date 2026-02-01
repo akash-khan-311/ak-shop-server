@@ -25,10 +25,10 @@ const productSchema = new Schema(
       index: true
     },
 
-    vendorId: {
+    adminId: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: 'Vendor',
+      ref: 'User',
       index: true
     },
 
@@ -39,7 +39,10 @@ const productSchema = new Schema(
     width: { type: Number },
     description: { type: String },
     isDeleted: { type: Boolean, default: false },
+    isPublished: { type: Boolean, default: false },
     quantity: { type: Number, required: true },
+    regularPrice: { type: Number, required: true },
+    price: { type: Number, required: true },
     availability: {
       type: String,
       enum: ['In Stock', 'Out of Stock'],

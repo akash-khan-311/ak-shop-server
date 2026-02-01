@@ -20,10 +20,10 @@ export type TProduct = {
   length?: number
   width?: number
   description?: string
-
+  isPublished: boolean,
   quantity: number
   availability: 'In Stock' | 'Out of Stock'
   isDeleted: boolean
-  vendorId: mongoose.Types.ObjectId
+  adminId: mongoose.Types.ObjectId
   specifications: Record<string, TSpecValue>
 }

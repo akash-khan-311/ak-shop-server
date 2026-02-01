@@ -1,3 +1,5 @@
+import { Types } from 'mongoose'
+
 export type TBrand = string
 export type TSubCategoryImage = {
   url: string
@@ -11,6 +13,7 @@ export type TCategoryImage = {
 export type TSubCategory = {
   _id?: string
   name: string
+  adminId: Types.ObjectId
   slug: string
   image?: TSubCategoryImage
   brands: TBrand[]
@@ -20,6 +23,7 @@ export type TSubCategory = {
 export type Slug = string
 export type TCategory = {
   _id?: string
+  adminId: Types.ObjectId
   image?: TCategoryImage
   name: string
   slug: Slug

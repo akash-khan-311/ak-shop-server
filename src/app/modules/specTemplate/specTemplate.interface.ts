@@ -1,3 +1,6 @@
+/* eslint-disable prettier/prettier */
+import { Types } from "mongoose"
+
 export type TSpecFieldType =
   | 'text'
   | 'number'
@@ -19,9 +22,7 @@ export type TSpecField = {
 export type TSpecTemplate = {
   categorySlug?: string
   subcategorySlug: string
-
-  userId?: string | null
-
+  adminId?: Types.ObjectId
   fields: TSpecField[]
   isPublished?: boolean
   isDeleted?: boolean

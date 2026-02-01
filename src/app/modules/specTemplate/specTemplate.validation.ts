@@ -32,7 +32,7 @@ export const createSpecTemplateSchema = z.object({
   body: z.object({
     categorySlug: z.string().optional(),
     subcategorySlug: z.string().min(1),
-    userId: z.string().optional().nullable(), // null => base
+    adminId: z.string().optional(),
     fields: z.array(fieldSchema).default([]),
     isPublished: z.boolean().optional()
   })
@@ -41,7 +41,7 @@ export const updateSpecTemplateSchema = z.object({
   body: z.object({
     categorySlug: z.string().optional(),
     subcategorySlug: z.string().min(1).optional(),
-    userId: z.string().optional().nullable().optional(), // null => base
+    adminId: z.string().optional().nullable(),
     fields: z.array(fieldSchema).default([]).optional(),
     isPublished: z.boolean().optional()
   })

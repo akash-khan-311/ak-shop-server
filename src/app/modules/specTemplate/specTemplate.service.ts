@@ -14,21 +14,21 @@ const toObjectIdOrNull = (id?: string | null) => {
   return null
 }
 
-// ✅ create/upsert (your existing) - keep but fix filter a bit
+//  create/upsert (your existing) - keep but fix filter a bit
 const createSpecTemplateIntoDB = async (payload: any) => {
-  const userId = toObjectIdOrNull(payload.userId)
+  const adminId = toObjectIdOrNull(payload.adminId)
 
   const doc = await SpecTemplate.findOneAndUpdate(
     {
       categorySlug: payload.categorySlug,
       subcategorySlug: payload.subcategorySlug,
-      userId,
+      adminId,
       isDeleted: false
     },
     {
       categorySlug: payload.categorySlug,
       subcategorySlug: payload.subcategorySlug,
-      userId,
+      adminId,
       fields: (payload.fields || []).map((f: any, idx: number) => ({
         ...f,
         order: f.order ?? idx,
@@ -45,11 +45,11 @@ const createSpecTemplateIntoDB = async (payload: any) => {
   return doc
 }
 
-// ✅ list templates (dashboard)
-const getTemplatesFromDB = async (userId?: string) => {
+//  list templates (dashboard)
+const getTemplatesForUserFromDB = async (userId?: string) => {
   const userObjectId = toObjectIdOrNull(userId)
 
-  const filter: any = { isDeleted: false }
+  const filter: any = { isDeleted: false, isPublished: true }
   if (userId !== undefined) {
     // if provided, filter by that user only
     filter.userId = userObjectId
@@ -59,7 +59,12 @@ const getTemplatesFromDB = async (userId?: string) => {
   return docs
 }
 
-// ✅ single template
+export const getTemplatesForAdminFromDb = async () => {
+  const docs = await SpecTemplate.find({ isDeleted: false }).sort({ updatedAt: -1 })
+  return docs
+}
+
+//  single template
 const getTemplateByIdFromDB = async (id: string) => {
   if (!Types.ObjectId.isValid(id)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Invalid template id')
@@ -72,7 +77,7 @@ const getTemplateByIdFromDB = async (id: string) => {
   return doc
 }
 
-// ✅ update template (edit)
+//  update template (edit)
 const updateTemplateIntoDB = async (id: string, payload: any) => {
   if (!Types.ObjectId.isValid(id)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Invalid template id')
@@ -82,8 +87,8 @@ const updateTemplateIntoDB = async (id: string, payload: any) => {
   if (!existing) throw new AppError(httpStatus.NOT_FOUND, 'Template not found')
 
   // if userId passed
-  const userId =
-    payload.userId !== undefined ? toObjectIdOrNull(payload.userId) : existing.userId
+  const adminId =
+    payload.adminId !== undefined ? toObjectIdOrNull(payload.adminId) : existing.adminId
 
   const updateDoc: any = {}
 
@@ -102,9 +107,9 @@ const updateTemplateIntoDB = async (id: string, payload: any) => {
     }))
   }
 
-  updateDoc.userId = userId
+  updateDoc.adminId = adminId
 
-  // ✅ IMPORTANT: prevent duplicate conflict if you enforce unique key
+  //  IMPORTANT: prevent duplicate conflict if you enforce unique key
   // if there is already another template with same (categorySlug, subcategorySlug, userId)
   const newCategorySlug = updateDoc.categorySlug ?? existing.categorySlug
   const newSubcategorySlug = updateDoc.subcategorySlug ?? existing.subcategorySlug
@@ -113,7 +118,7 @@ const updateTemplateIntoDB = async (id: string, payload: any) => {
     _id: { $ne: existing._id },
     categorySlug: newCategorySlug,
     subcategorySlug: newSubcategorySlug,
-    userId,
+    adminId,
     isDeleted: false
   })
 
@@ -133,36 +138,32 @@ const updateTemplateIntoDB = async (id: string, payload: any) => {
   return updated
 }
 
-// ✅ effective template (base + vendor merge)
-const getEffectiveTemplateFromDB = async (
-  subcategorySlug: string,
-  userId?: string
-) => {
+//  effective template (base + vendor merge)
+const getEffectiveTemplateFromDB = async (subcategorySlug: string) => {
   const base = await SpecTemplate.findOne({
     subcategorySlug,
-    userId: null,
     isDeleted: false,
     isPublished: true
   })
 
-  const userObjectId = toObjectIdOrNull(userId)
 
-  const vendor = userObjectId
+
+
     ? await SpecTemplate.findOne({
       subcategorySlug,
-      userId: userObjectId,
+
       isDeleted: false,
       isPublished: true
     })
     : null
 
   const baseFields: TSpecField[] = (base?.fields || []) as any
-  const vendorFields: TSpecField[] = (vendor?.fields || []) as any
+
 
   // merge by name (vendor overrides)
   const map = new Map<string, TSpecField>()
   baseFields.forEach((f) => map.set(f.name, f))
-  vendorFields.forEach((f) => map.set(f.name, f))
+
 
   const fields = Array.from(map.values()).sort(
     (a, b) => (a.order || 0) - (b.order || 0)
@@ -174,7 +175,7 @@ const getEffectiveTemplateFromDB = async (
   }
 }
 
-// ✅ delete single/multiple
+//  delete single/multiple
 const deleteTemplatesFromDB = async (ids: string[]) => {
   const templates = await SpecTemplate.find({
     _id: { $in: ids },
@@ -199,8 +200,9 @@ export const toggleTemplatePublishIntoDb = async (id: string) => {
 }
 
 export const SpecTemplateService = {
+  getTemplatesForAdminFromDb,
   createSpecTemplateIntoDB,
-  getTemplatesFromDB,
+  getTemplatesForUserFromDB,
   getTemplateByIdFromDB,
   updateTemplateIntoDB,
   getEffectiveTemplateFromDB,

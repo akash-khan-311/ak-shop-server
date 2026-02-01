@@ -5,6 +5,7 @@ import { CategoryRoutes } from '../modules/category/category.route'
 import { ProductRoutes } from '../modules/products/product.route'
 import { SpecTemplateRoutes } from '../modules/specTemplate/specTemplate.route'
 import { ReviewRoutes } from '../modules/reviews/review.route'
+import { CouponRoutes } from '../modules/coupons/coupon.route'
 
 /**
  * Main router configuration
@@ -27,7 +28,8 @@ const moduleRoutes = [
   { path: '/category', route: CategoryRoutes },
   { path: '/spec-template', route: SpecTemplateRoutes },
   { path: '/product', route: ProductRoutes },
-  { path: '/reviews', route: ReviewRoutes }
+  { path: '/reviews', route: ReviewRoutes },
+  { path: '/coupons', route: CouponRoutes }
 ]
 
 /**

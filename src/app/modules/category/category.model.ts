@@ -13,6 +13,7 @@ const subCategorySchema = new Schema(
       required: true,
       lowercase: true
     },
+    adminId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     brands: {
       type: [String],
       default: []
@@ -33,6 +34,7 @@ const categorySchema = new Schema(
       required: true,
       trim: true
     },
+    adminId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     image: { url: String, public_id: String },
     slug: {
       type: String,

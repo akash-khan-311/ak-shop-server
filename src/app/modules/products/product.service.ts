@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Types } from 'mongoose'
 import httpStatus from 'http-status'
 import AppError from '../../errors/AppError'
 import { Product } from './product.model'
@@ -9,6 +8,7 @@ import {
   deleteManyFromCloudinary,
   uploadManyToCloudinary
 } from '../../helpers/CloudinaryImages'
+import { cloudinary } from '../../config/cloudinary'
 
 const buildSpecIndex = (specs: Record<string, any>) => {
   const out: { k: string; v: string }[] = []
@@ -28,8 +28,7 @@ const createProductIntoDB = async (
 ) => {
   // effective fields
   const tpl = await SpecTemplateService.getEffectiveTemplateFromDB(
-    payload.subcategorySlug,
-    payload.vendorId
+    payload.subcategorySlug
   )
 
   let uploadedImages
@@ -75,20 +74,11 @@ const createProductIntoDB = async (
     }
   }
 
-  const vendorId =
-    typeof payload.vendorId === 'string' &&
-      Types.ObjectId.isValid(payload.vendorId)
-      ? Types.ObjectId.createFromHexString(payload.vendorId)
-      : null
 
-  if (!vendorId) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'Invalid Vendor Id')
-  }
 
   const doc = await Product.create({
     ...payload,
     images: uploadedImages,
-    vendorId,
     specifications: specs,
     specIndex: buildSpecIndex(specs)
   })
@@ -96,8 +86,16 @@ const createProductIntoDB = async (
   return doc
 }
 
-const getAllProductFromDb = async () => {
+export const getAllProductsForAdminFromDb = async () => {
   const products = await Product.find({ isDeleted: false })
+  if (!products.length) {
+    throw new AppError(httpStatus.NOT_FOUND, 'No products found for Admin')
+  }
+  return products
+}
+
+const getAllProductFromDb = async () => {
+  const products = await Product.find({ isDeleted: false, isPublished: true })
   if (!products.length) {
     throw new AppError(httpStatus.NOT_FOUND, 'No products found')
   }
@@ -111,7 +109,15 @@ const getSingleProductFromDb = async (id: string) => {
   }
   return product
 }
-
+export const togglePublishProductIntoDb = async (id: string) => {
+  const product = await Product.findOne({ _id: id, isDeleted: false })
+  if (!product) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Product not found')
+  }
+  product.isPublished = !product.isPublished
+  const result = await product.save()
+  return result
+}
 const updateProductIntoDB = async (
   id: string,
   payload: any,
@@ -167,22 +173,37 @@ const updateProductIntoDB = async (
   const result = await product.save()
   return result
 }
-const deleteProductFromDB = async (id: string) => {
-  const product = await Product.findOne({ _id: id, isDeleted: false })
-  if (!product) throw new AppError(httpStatus.NOT_FOUND, 'Product not found 😒')
+const deleteProductFromDB = async (ids: string) => {
+  const products = await Product.find({
+    _id: { $in: ids },
+    isDeleted: false
+  })
+  if (!products.length) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Product not found for delete 😒')
+  }
 
-  const publicIds = (product.images || []).map((img: any) => img.public_id)
-  await deleteManyFromCloudinary(publicIds)
-
-  product.isDeleted = true
-  const result = await product.save()
+  /* Delete images from Cloudinary */
+  for (const category of products) {
+    if (category.images) {
+      for (const img of category.images) {
+        await cloudinary.uploader.destroy(img.public_id)
+      }
+    }
+  }
+  const result = await Product.updateMany(
+    { _id: { $in: ids } },
+    { isDeleted: true, published: false }
+  )
 
   return result
+
 }
 export const ProductService = {
   createProductIntoDB,
+  getAllProductsForAdminFromDb,
   updateProductIntoDB,
   deleteProductFromDB,
   getAllProductFromDb,
-  getSingleProductFromDb
+  getSingleProductFromDb,
+  togglePublishProductIntoDb
 }

@@ -147,6 +147,7 @@ export const getSingleSubCategoryFromDb = async (id: string) => {
   return {
     _id: subCategory._id,
     name: subCategory.name,
+    adminId: subCategory.adminId,
     slug: subCategory.slug,
     brands: subCategory.brands || [],
     published: cat.published,
@@ -156,7 +157,7 @@ export const getSingleSubCategoryFromDb = async (id: string) => {
   }
 }
 
-export const getAllCategoriesForVendorAndAdminFromDB = async () => {
+export const getAllCategoriesForAdminFromDB = async () => {
   const categories = await Category.find({ isDeleted: false })
   return categories
 }
@@ -375,7 +376,7 @@ export const deleteSubCategoriesFromDb = async (subCategoryIds: string[]) => {
 export const CategoryService = {
   getAllCategoriesForCustomer,
   createCategoryIntoDB,
-  getAllCategoriesForVendorAndAdminFromDB,
+  getAllCategoriesForAdminFromDB,
   getSingleCategoryFromDb,
   updateCategoryIntoDb,
   deleteCategoryFromDb,

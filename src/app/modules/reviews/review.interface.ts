@@ -17,7 +17,7 @@ export interface IReview {
     _id?: string;
 
     productId: mongoose.Types.ObjectId;
-    vendorId: mongoose.Types.ObjectId;
+    adminId: mongoose.Types.ObjectId;
     orderId?: mongoose.Types.ObjectId;
 
     userId: number;

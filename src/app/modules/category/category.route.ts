@@ -10,24 +10,24 @@ const router = express.Router()
 const upload = multer({ storage })
 router.post(
   '/create',
-  auth('admin', 'superAdmin', 'vendor'),
+  auth('admin', 'superAdmin'),
   upload.single('image'),
-  validateRequest(CategoryValidation.createCategoryValidationSchema),
+  // validateRequest(CategoryValidation.createCategoryValidationSchema),
   CategoryController.createCategory
 )
 
 router.post(
   '/:id/create-subcategory',
-  auth('admin', 'superAdmin', 'vendor'),
+  auth('admin', 'superAdmin'),
   upload.single('image'),
   validateRequest(CategoryValidation.subCategoryValidationSchema),
   CategoryController.createSubCategory
 )
 
 router.get(
-  '/vendor',
-  auth('admin', 'vendor', 'superAdmin'),
-  CategoryController.getAllCategoriesForAdminAndVendor
+  '/admin',
+  auth('admin', 'superAdmin'),
+  CategoryController.getAllCategoriesForAdmin
 )
 
 router.get('/all', CategoryController.getAllCategoriesForCustomer)
@@ -38,7 +38,7 @@ router.get(
 )
 router.patch(
   '/:id',
-  auth('admin', 'superAdmin', 'vendor'),
+  auth('admin', 'superAdmin'),
   uploadCategoryImage.single('image'),
   validateRequest(CategoryValidation.updateCategoryValidationSchema),
   CategoryController.updateCategory
@@ -46,7 +46,7 @@ router.patch(
 router.patch(
   '/subcategory/:id',
   upload.single('image'),
-  auth('admin', 'vendor', 'superAdmin'),
+  auth('admin', 'superAdmin'),
   CategoryController.updateSubCategory
 )
 
@@ -56,17 +56,17 @@ router.get('/all/subcategories', CategoryController.getAllSubCategories)
 
 router.delete(
   '/delete',
-  auth('admin', 'superAdmin', 'vendor'),
+  auth('admin', 'superAdmin'),
   CategoryController.deleteCategory
 )
 router.delete(
   '/subcategory/delete',
-  auth('admin', 'vendor', 'superAdmin'),
+  auth('admin', 'superAdmin'),
   CategoryController.deleteSubCategory
 )
 router.patch(
   '/change-status/:id',
-  auth('admin', 'superAdmin', 'vendor'),
+  auth('admin', 'superAdmin'),
   CategoryController.toggleCategoryPublished
 )
 export const CategoryRoutes = router

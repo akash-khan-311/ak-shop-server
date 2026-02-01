@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import express from 'express'
 import auth from '../../middlewares/auth'
 import multer from 'multer'
@@ -15,6 +16,7 @@ router.post(
   ProductController.createProduct
 )
 router.get('/', ProductController.getAllProducts)
+router.get('/admin', auth('admin', 'superAdmin'), ProductController.getAllProductsForAdmin)
 router.get('/:id', ProductController.getSingleProduct)
 router.patch(
   '/:id',
@@ -22,9 +24,14 @@ router.patch(
   upload.array('images', 8),
   ProductController.updateProduct
 )
+router.patch(
+  '/publish/:id',
+  auth('admin', 'superAdmin'),
+  ProductController.togglePublishProduct
+)
 
 router.delete(
-  '/:id',
+  '/delete',
   auth('admin', 'superAdmin', 'vendor'),
   ProductController.deleteProduct
 )
