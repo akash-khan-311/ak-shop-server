@@ -1,10 +1,8 @@
-/* eslint-disable prettier/prettier */
 import { JwtPayload } from 'jsonwebtoken'
 import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
 import { UserService } from './user.service'
 import httpStatus from 'http-status'
-
 
 export const registerUser = catchAsync(async (req, res) => {
   const result = await UserService.createUserIntoDb(req.body)
@@ -15,7 +13,6 @@ export const registerUser = catchAsync(async (req, res) => {
     message: 'User created successfully',
     data: result
   })
-
 })
 
 export const getUserByEmail = catchAsync(async (req, res) => {
@@ -32,10 +29,40 @@ export const getUserByEmail = catchAsync(async (req, res) => {
 export const getUserById = catchAsync(async (req, res) => {
   const userId = Number(req.params.id)
   if (!Number.isFinite(userId)) {
-    return sendResponse(res, { status: httpStatus.BAD_REQUEST, success: false, message: "Invalid user id", data: null })
+    return sendResponse(res, {
+      status: httpStatus.BAD_REQUEST,
+      success: false,
+      message: 'Invalid user id',
+      data: null
+    })
   }
   const result = await UserService.getUserByIdFromDB(userId)
-  sendResponse(res, { status: httpStatus.OK, success: true, message: "User found successfully", data: result })
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: 'User found successfully',
+    data: result
+  })
+})
+export const updateStatus = catchAsync(async (req, res) => {
+  const userId = Number(req.params.id)
+  if (!Number.isFinite(userId)) {
+    return sendResponse(res, {
+      status: httpStatus.BAD_REQUEST,
+      success: false,
+      message: 'Invalid user id',
+      data: null
+    })
+  }
+  const result = await UserService.updateStatusIntoDb(userId)
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: `User ${
+      result?.status === 'active' ? 'Unblock' : 'Block'
+    } successfully`,
+    data: result
+  })
 })
 export const getUserByPhoneNumber = catchAsync(async (req, res) => {
   const result = await UserService.getUserWithPhoneNumberFromDb(
@@ -73,7 +100,6 @@ export const getAllUsers = catchAsync(async (req, res) => {
 })
 
 export const getMe = catchAsync(async (req, res) => {
-
   const user = req.user as JwtPayload
   const result = await UserService.getMeFromDB(user)
   sendResponse(res, {
@@ -90,7 +116,7 @@ export const updateUser = catchAsync(async (req, res) => {
     return sendResponse(res, {
       status: httpStatus.BAD_REQUEST,
       success: false,
-      message: "Invalid user id",
+      message: 'Invalid user id',
       data: null
     })
   }
@@ -109,7 +135,7 @@ export const addAddress = catchAsync(async (req, res) => {
     return sendResponse(res, {
       status: httpStatus.BAD_REQUEST,
       success: false,
-      message: "Invalid user id",
+      message: 'Invalid user id',
       data: null
     })
   }
@@ -129,7 +155,7 @@ export const removeAddress = catchAsync(async (req, res) => {
     return sendResponse(res, {
       status: httpStatus.BAD_REQUEST,
       success: false,
-      message: "Invalid user id",
+      message: 'Invalid user id',
       data: null
     })
   }
@@ -151,11 +177,15 @@ export const setDefaultAddress = catchAsync(async (req, res) => {
     return sendResponse(res, {
       status: httpStatus.BAD_REQUEST,
       success: false,
-      message: "Invalid user id",
+      message: 'Invalid user id',
       data: null
     })
   }
-  const result = await UserService.setDefaultAddressFromDb(userId, addressId, type,)
+  const result = await UserService.setDefaultAddressFromDb(
+    userId,
+    addressId,
+    type
+  )
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
@@ -170,7 +200,7 @@ export const updateAvatar = catchAsync(async (req, res) => {
     return sendResponse(res, {
       status: httpStatus.BAD_REQUEST,
       success: false,
-      message: "Invalid user id",
+      message: 'Invalid user id',
       data: null
     })
   }
@@ -184,6 +214,26 @@ export const updateAvatar = catchAsync(async (req, res) => {
   })
 })
 
+export const deleteUser = catchAsync(async (req, res) => {
+  const userId = Number(req.params.id)
+  if (!Number.isFinite(userId)) {
+    return sendResponse(res, {
+      status: httpStatus.BAD_REQUEST,
+      success: false,
+      message: 'Invalid user id for delete',
+      data: null
+    })
+  }
+  const result = await UserService.deleteUserFromDb(userId)
+
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: 'User deleted successfully',
+    data: result
+  })
+})
+
 export const UserController = {
   registerUser,
   getUserByEmail,
@@ -192,9 +242,11 @@ export const UserController = {
   getUserByProviderId,
   updateUser,
   getMe,
+  updateStatus,
   getUserById,
   addAddress,
   updateAvatar,
   removeAddress,
-  setDefaultAddress
+  setDefaultAddress,
+  deleteUser
 }

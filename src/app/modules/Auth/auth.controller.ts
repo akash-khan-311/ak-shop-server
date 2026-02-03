@@ -7,6 +7,8 @@ import httpStatus from 'http-status'
 import { AuthService } from './auth.service'
 import { JwtPayload } from 'jsonwebtoken'
 import { createToken } from '../../utils/commonUtils'
+import AppError from '../../errors/AppError'
+import { User } from '../user/user.model'
 
 const cookieOptions = {
   httpOnly: true,
@@ -18,33 +20,41 @@ const cookieOptions = {
 
 
 export const oauthSuccessHandler = async (req: any, res: any) => {
-  const user = req.user;
-
+  const oauthUser = req.user;
+  const dbUser = await User.findOne({ email: oauthUser.email });
+  if (!dbUser) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+  const isProd = process.env.NODE_ENV === "production";
+  const cookieOpts = { httpOnly: true, secure: isProd, sameSite: "lax" };
+  if (dbUser.status === "blocked") {
+    res.clearCookie("accessToken", cookieOpts);
+    res.clearCookie("refreshToken", cookieOpts);
+    return res.redirect(
+      `${config.client_side_url}/auth/callback?success=0&message=${encodeURIComponent(
+        "You can't login using this gmail"
+      )}`
+    );
+  }
   const jwtPayload = {
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    userId: user.id,
-    role: user.role,
-    createdAt: user.createdAt,
+    _id: dbUser._id,
+    name: dbUser.name,
+    email: dbUser.email,
+    userId: dbUser.id,
+    role: dbUser.role,
+    createdAt: dbUser.createdAt,
   };
 
   const accessToken = createToken(jwtPayload, config.jwt_access_token_secret!, config.jwt_access_token_expires_in!);
   const refreshToken = createToken(jwtPayload, config.jwt_refresh_token_secret!, config.jwt_refresh_token_expires_in!);
 
 
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production" ? true : false,
-    sameSite: "lax",
-  });
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-  });
+  res.cookie("accessToken", accessToken, cookieOpts);
 
-  // ✅ frontend redirect
+  res.cookie("refreshToken", refreshToken, cookieOpts);
+
+
+  //  frontend redirect
   return res.redirect(`${config.client_side_url}/auth/callback?success=1`);
 };
 export const loginUser = catchAsync(async (req, res) => {
@@ -65,7 +75,7 @@ export const logout = catchAsync(async (req, res) => {
   res.clearCookie("accessToken", cookieOptions);
   res.clearCookie("refreshToken", cookieOptions);
 
-  sendResponse(res, {
+  return sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: "Logged out successfully",

@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable prettier/prettier */
 import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
 import httpStatus from 'http-status'
 import { SpecTemplateService } from './specTemplate.service'
 
 export const createSpecTemplate = catchAsync(async (req, res) => {
-  const userId = (req.user as any)?._id;
+  const userId = (req.user as any)?._id
   const payload = {
     ...req.body,
     adminId: userId
@@ -68,9 +67,8 @@ export const updateTemplate = catchAsync(async (req, res) => {
 
 export const getEffectiveSpecTemplate = catchAsync(async (req, res) => {
   const { subcategorySlug } = req.params
-
-  console.log('this is subcategory slug', subcategorySlug)
-  const result = await SpecTemplateService.getEffectiveTemplateFromDB(subcategorySlug)
+  const result =
+    await SpecTemplateService.getEffectiveTemplateFromDB(subcategorySlug)
 
   sendResponse(res, {
     status: httpStatus.OK,
@@ -103,12 +101,12 @@ export const toggleTemplatePublished = catchAsync(async (req, res) => {
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
-    message: `Template ${result.isPublished ? 'published' : 'unpublished'
-      } successfully`,
+    message: `Template ${
+      result.isPublished ? 'published' : 'unpublished'
+    } successfully`,
     data: result
   })
 })
-
 
 export const SpecTemplateController = {
   createSpecTemplate,

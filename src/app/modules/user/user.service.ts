@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable prettier/prettier */
 import { IUser, IUserAddress } from './user.interface'
 import { JwtPayload } from 'jsonwebtoken'
 import { User } from './user.model'
@@ -11,6 +10,7 @@ import { createToken } from '../../utils/commonUtils'
 import AppError from '../../errors/AppError'
 import mongoose from 'mongoose'
 import { cloudinary } from '../../config/cloudinary'
+import { USER_ROLE } from '../../constants/userRole_constant'
 export const createUserIntoDb = async (payload: IUser) => {
   const existingUser = await User.findOne({ email: payload.email })
   if (existingUser) {
@@ -53,6 +53,32 @@ export const createUserIntoDb = async (payload: IUser) => {
 export const getAllUsersFromDb = async () => {
   const users = await User.find({ isDeleted: false })
   return users
+}
+
+export const updateStatusIntoDb = async (id: number) => {
+  const user = await User.findOne({ id, isDeleted: false })
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found')
+  }
+  if ((user as any).role === USER_ROLE.superAdmin) {
+    throw new AppError(httpStatus.FORBIDDEN, 'Super admin cannot be blocked')
+  }
+
+  const current = (user as any).status || 'active'
+  if (current !== 'active' && current !== 'blocked') {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `Cannot toggle from status: ${current}`
+    )
+  }
+
+  ;(user as any).status = current === 'active' ? 'blocked' : 'active'
+
+  await user.save()
+  return {
+    _id: user._id,
+    status: user.status
+  }
 }
 
 export const getUserByIdFromDB = async (id: number) => {
@@ -98,8 +124,19 @@ export const getUserWithPhoneNumberFromDb = async (phone: string) => {
   return user
 }
 
-const getMeFromDB = async (payload: JwtPayload) => {
+export const deleteUserFromDb = async (id: number) => {
+  const user = await User.findOne({ id, isDeleted: false })
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found')
+  }
+  const updatedUser = await User.findOneAndUpdate(
+    { id },
+    { $set: { isDeleted: true } }
+  )
+  return updatedUser
+}
 
+const getMeFromDB = async (payload: JwtPayload) => {
   const { userId, role } = payload
   const uid = Number(userId)
 
@@ -125,7 +162,7 @@ const getMeFromDB = async (payload: JwtPayload) => {
 
 const updateUserIntoDb = async (id: number, payload: Partial<IUser>) => {
   const forbidden = ['role', 'status', 'isDeleted', 'password'] as const
-  forbidden.forEach((k) => {
+  forbidden.forEach(k => {
     if (k in (payload as any)) delete (payload as any)[k]
   })
   const updatedUser = await User.findOneAndUpdate(
@@ -178,9 +215,9 @@ export const addUserAddressIntoDb = async (
     const last = user.addresses?.[user.addresses.length - 1] as any
     if (last?._id) {
       if (address.type === 'shipping') {
-        ; (user as any).defaultShippingAddressId = last._id
+        ;(user as any).defaultShippingAddressId = last._id
       } else {
-        ; (user as any).defaultBillingAddressId = last._id
+        ;(user as any).defaultBillingAddressId = last._id
       }
       await user.save()
     }
@@ -189,7 +226,10 @@ export const addUserAddressIntoDb = async (
   return user
 }
 
-export const removeAddressFromDb = async (userId: number, addressId: string) => {
+export const removeAddressFromDb = async (
+  userId: number,
+  addressId: string
+) => {
   const uid = Number(userId)
   if (!Number.isFinite(uid)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Invalid user id')
@@ -198,7 +238,9 @@ export const removeAddressFromDb = async (userId: number, addressId: string) => 
   const user = await User.findOne({ id: uid, isDeleted: false })
   if (!user) throw new AppError(httpStatus.NOT_FOUND, 'User not found')
 
-  const target = user.addresses?.find((a: any) => a._id?.toString() === addressId)
+  const target = user.addresses?.find(
+    (a: any) => a._id?.toString() === addressId
+  )
   if (!target) throw new AppError(httpStatus.NOT_FOUND, 'Address not found')
 
   const removedType = target.type
@@ -212,7 +254,9 @@ export const removeAddressFromDb = async (userId: number, addressId: string) => 
   if (!updated) throw new AppError(httpStatus.NOT_FOUND, 'User not found')
 
   if (wasDefault) {
-    const next = (updated.addresses || []).find((a: any) => a.type === removedType)
+    const next = (updated.addresses || []).find(
+      (a: any) => a.type === removedType
+    )
 
     // unset all defaults of that type
     await User.updateOne(
@@ -229,10 +273,12 @@ export const removeAddressFromDb = async (userId: number, addressId: string) => 
         { arrayFilters: [{ 'elem._id': next._id }] }
       )
 
-      if (removedType === 'shipping') (updated as any).defaultShippingAddressId = next._id
+      if (removedType === 'shipping')
+        (updated as any).defaultShippingAddressId = next._id
       else (updated as any).defaultBillingAddressId = next._id
     } else {
-      if (removedType === 'shipping') (updated as any).defaultShippingAddressId = null
+      if (removedType === 'shipping')
+        (updated as any).defaultShippingAddressId = null
       else (updated as any).defaultBillingAddressId = null
     }
 
@@ -242,11 +288,10 @@ export const removeAddressFromDb = async (userId: number, addressId: string) => 
   return updated
 }
 
-
 export const setDefaultAddressFromDb = async (
   userId: number,
   addressId: string,
-  type: 'shipping' | 'billing',
+  type: 'shipping' | 'billing'
 ) => {
   const uid = Number(userId)
 
@@ -260,12 +305,21 @@ export const setDefaultAddressFromDb = async (
   // unset defaults of same type + set this one true
   user.addresses = (user.addresses || []).map((a: any) => {
     if (a.type !== type) return a
-    return { ...a.toObject?.() ?? a, isDefault: a._id.toString() === addressId }
+    return {
+      ...(a.toObject?.() ?? a),
+      isDefault: a._id.toString() === addressId
+    }
   }) as any
 
   // also set fast pointer id
-  if (type === 'shipping') (user as any).defaultShippingAddressId = new mongoose.Types.ObjectId(addressId)
-  if (type === 'billing') (user as any).defaultBillingAddressId = new mongoose.Types.ObjectId(addressId)
+  if (type === 'shipping')
+    (user as any).defaultShippingAddressId = new mongoose.Types.ObjectId(
+      addressId
+    )
+  if (type === 'billing')
+    (user as any).defaultBillingAddressId = new mongoose.Types.ObjectId(
+      addressId
+    )
 
   await user.save()
 
@@ -274,7 +328,8 @@ export const setDefaultAddressFromDb = async (
 
 export const updateUserAvatarInfoDb = async (
   userId: number,
-  file?: Express.Multer.File) => {
+  file?: Express.Multer.File
+) => {
   const uid = Number(userId)
   const user = await User.findOne({ id: uid, isDeleted: false })
   if (!user) {
@@ -289,9 +344,7 @@ export const updateUserAvatarInfoDb = async (
 
     // ⬆ upload new image
     const uploadResult = await cloudinary.uploader.upload(
-      `data:${file.mimetype};base64,${file.buffer.toString(
-        'base64'
-      )}`,
+      `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
       {
         folder: 'users'
       }
@@ -301,7 +354,6 @@ export const updateUserAvatarInfoDb = async (
       url: uploadResult.secure_url,
       public_id: uploadResult.public_id
     }
-
   }
 
   const updatedUser = await User.findOneAndUpdate(
@@ -324,8 +376,10 @@ export const UserService = {
   getAllUsersFromDb,
   getMeFromDB,
   getUserByIdFromDB,
+  updateStatusIntoDb,
   removeAddressFromDb,
   setDefaultAddressFromDb,
   updateUserAvatarInfoDb,
-  addUserAddressIntoDb
+  addUserAddressIntoDb,
+  deleteUserFromDb
 }

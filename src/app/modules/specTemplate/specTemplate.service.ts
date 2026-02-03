@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status'
 import { Types } from 'mongoose'
@@ -60,7 +59,7 @@ const getTemplatesForUserFromDB = async (userId?: string) => {
 }
 
 export const getTemplatesForAdminFromDb = async () => {
-  const docs = await SpecTemplate.find({ isDeleted: false }).sort({ updatedAt: -1 })
+  const docs = await SpecTemplate.find({ isDeleted: false })
   return docs
 }
 
@@ -88,13 +87,17 @@ const updateTemplateIntoDB = async (id: string, payload: any) => {
 
   // if userId passed
   const adminId =
-    payload.adminId !== undefined ? toObjectIdOrNull(payload.adminId) : existing.adminId
+    payload.adminId !== undefined
+      ? toObjectIdOrNull(payload.adminId)
+      : existing.adminId
 
   const updateDoc: any = {}
 
   if (payload.categorySlug) updateDoc.categorySlug = payload.categorySlug
-  if (payload.subcategorySlug) updateDoc.subcategorySlug = payload.subcategorySlug
-  if (payload.isPublished !== undefined) updateDoc.isPublished = payload.isPublished
+  if (payload.subcategorySlug)
+    updateDoc.subcategorySlug = payload.subcategorySlug
+  if (payload.isPublished !== undefined)
+    updateDoc.isPublished = payload.isPublished
 
   if (payload.fields) {
     updateDoc.fields = (payload.fields || []).map((f: any, idx: number) => ({
@@ -112,7 +115,8 @@ const updateTemplateIntoDB = async (id: string, payload: any) => {
   //  IMPORTANT: prevent duplicate conflict if you enforce unique key
   // if there is already another template with same (categorySlug, subcategorySlug, userId)
   const newCategorySlug = updateDoc.categorySlug ?? existing.categorySlug
-  const newSubcategorySlug = updateDoc.subcategorySlug ?? existing.subcategorySlug
+  const newSubcategorySlug =
+    updateDoc.subcategorySlug ?? existing.subcategorySlug
 
   const duplicate = await SpecTemplate.findOne({
     _id: { $ne: existing._id },
@@ -129,41 +133,34 @@ const updateTemplateIntoDB = async (id: string, payload: any) => {
     )
   }
 
-  const updated = await SpecTemplate.findOneAndUpdate(
-    { _id: id },
-    updateDoc,
-    { new: true, runValidators: true }
-  )
+  const updated = await SpecTemplate.findOneAndUpdate({ _id: id }, updateDoc, {
+    new: true,
+    runValidators: true
+  })
 
   return updated
 }
 
 //  effective template (base + vendor merge)
 const getEffectiveTemplateFromDB = async (subcategorySlug: string) => {
-  const base = await SpecTemplate.findOne({
+  const base = (await SpecTemplate.findOne({
     subcategorySlug,
     isDeleted: false,
     isPublished: true
-  })
-
-
-
-
+  }))
     ? await SpecTemplate.findOne({
-      subcategorySlug,
+        subcategorySlug,
 
-      isDeleted: false,
-      isPublished: true
-    })
+        isDeleted: false,
+        isPublished: true
+      })
     : null
 
   const baseFields: TSpecField[] = (base?.fields || []) as any
 
-
   // merge by name (vendor overrides)
   const map = new Map<string, TSpecField>()
-  baseFields.forEach((f) => map.set(f.name, f))
-
+  baseFields.forEach(f => map.set(f.name, f))
 
   const fields = Array.from(map.values()).sort(
     (a, b) => (a.order || 0) - (b.order || 0)
@@ -181,7 +178,8 @@ const deleteTemplatesFromDB = async (ids: string[]) => {
     _id: { $in: ids },
     isDeleted: false
   })
-  if (!templates.length) throw new AppError(httpStatus.NOT_FOUND, 'Category not found for delete 😒')
+  if (!templates.length)
+    throw new AppError(httpStatus.NOT_FOUND, 'Category not found for delete 😒')
   const result = await SpecTemplate.updateMany(
     { _id: { $in: ids } },
     { isDeleted: true, published: false }

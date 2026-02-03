@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from 'express'
@@ -33,7 +34,10 @@ const globalErrorHandler = async (
       message: 'Something went wrong'
     }
   ]
-
+  if (err?.statusCode === 401 || err?.statusCode === 403) {
+    res.clearCookie("accessToken", { sameSite: "lax", secure: process.env.NODE_ENV === "production" });
+    res.clearCookie("refreshToken", { sameSite: "lax", secure: process.env.NODE_ENV === "production" });
+  }
   // Zod validation error handling
   if (err instanceof ZodError) {
     const simplifiedError: TGenericErrorResponse = handleZodValidationError(err)

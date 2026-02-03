@@ -23,12 +23,11 @@ const reviewSchema = new Schema<IReview>(
         adminId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
         orderId: { type: Schema.Types.ObjectId, ref: "Order", default: null },
         images: { type: [reviewImageSchema], default: [] },
-        userId: { type: Number, required: true, index: true },
+        userId: { type: Schema.Types.ObjectId, ref: "User", required: true, },
         userName: { type: String, required: true },
         userEmail: { type: String, default: null },
-
         rating: { type: Number, required: true, min: 1, max: 5 },
-        comment: { type: String, required: true, trim: true, maxlength: 1000 },
+        comment: { type: String, required: true, trim: true, maxLength: 1000 },
 
         status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
         isDeleted: { type: Boolean, default: false },

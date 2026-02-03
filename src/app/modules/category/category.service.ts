@@ -158,13 +158,83 @@ export const getSingleSubCategoryFromDb = async (id: string) => {
 }
 
 export const getAllCategoriesForAdminFromDB = async () => {
-  const categories = await Category.find({ isDeleted: false })
-  return categories
+  const result = await Category.aggregate([
+    { $match: { isDeleted: false } },
+
+    {
+      $lookup: {
+        from: "products",
+        let: { catSlug: "$slug" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$categorySlug", "$$catSlug"] },
+              isDeleted: false,
+            },
+          },
+          { $count: "count" },
+        ],
+        as: "productCountArr",
+      },
+    },
+
+
+    {
+      $addFields: {
+        productCount: {
+          $ifNull: [{ $arrayElemAt: ["$productCountArr.count", 0] }, 0],
+        },
+      },
+    },
+
+
+    { $project: { productCountArr: 0 } },
+
+
+    { $sort: { createdAt: -1 } },
+  ]);
+
+  return result
 }
 
 export const getAllCategoriesForCustomer = async () => {
-  const categories = await Category.find({ isDeleted: false, published: true })
-  return categories
+  const result = await Category.aggregate([
+    { $match: { isDeleted: false, published: true } },
+
+    {
+      $lookup: {
+        from: "products",
+        let: { catSlug: "$slug" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$categorySlug", "$$catSlug"] },
+              isDeleted: false,
+            },
+          },
+          { $count: "count" },
+        ],
+        as: "productCountArr",
+      },
+    },
+
+
+    {
+      $addFields: {
+        productCount: {
+          $ifNull: [{ $arrayElemAt: ["$productCountArr.count", 0] }, 0],
+        },
+      },
+    },
+
+
+    { $project: { productCountArr: 0 } },
+
+
+    { $sort: { createdAt: -1 } },
+  ]);
+
+  return result
 }
 
 export const getSingleCategoryFromDb = async (id: string) => {
@@ -224,7 +294,7 @@ export const updateSubCategoryIntoDb = async (
 ) => {
   const { name, slug, categoryId, brands } = payload
 
-  // 🔎 find category that currently owns this subcategory
+  //  find category that currently owns this subcategory
   const currentCategory = await Category.findOne({
     'subcategories._id': id,
     isDeleted: false
@@ -323,7 +393,7 @@ export const deleteCategoryFromDb = async (ids: string[]) => {
   if (!categories.length) {
     throw new AppError(httpStatus.NOT_FOUND, 'Category not found for delete 😒')
   }
-  /* 🔥 Delete images from Cloudinary */
+  /* Delete images from Cloudinary */
   for (const category of categories) {
     if (category.image?.public_id) {
       await cloudinary.uploader.destroy(category.image.public_id)

@@ -9,29 +9,28 @@ import httpStatus from 'http-status'
 import { User } from '../user/user.model'
 import sendEmail from '../../utils/sendEmail'
 export const loginUserIntoDb = async (payload: TLoginUser) => {
-  let user
-
+  let newUser
   if (payload.email) {
-    user = await verifyUserCredentials(payload.email, payload.password)
+    newUser = await verifyUserCredentials(payload.email, payload.password)
   } else if (payload.phone) {
-    user = await verifyUserCredentials(
+    newUser = await verifyUserCredentials(
       undefined,
       payload.password,
       payload.phone
     )
   }
 
-  if (!user) {
+  if (!newUser) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not found')
   }
 
   const jwtPayload = {
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    userId: user.id,
-    role: user.role,
-    createdAt: user.createdAt
+    _id: newUser._id,
+    name: newUser.name,
+    email: newUser.email,
+    userId: newUser.id,
+    role: newUser.role,
+    createdAt: newUser.createdAt
   }
 
   const accessToken = createToken(
@@ -49,7 +48,7 @@ export const loginUserIntoDb = async (payload: TLoginUser) => {
   return {
     accessToken,
     refreshToken,
-    user
+    user: newUser
   }
 }
 

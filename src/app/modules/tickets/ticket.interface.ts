@@ -19,7 +19,6 @@ export type ITicket = {
     status: TicketStatus;
     messages: ITicketMessage[];
     userId?: string;
-    vendorId?: string;
     orderId?: string;
     createdAt: Date;
     updatedAt: Date;

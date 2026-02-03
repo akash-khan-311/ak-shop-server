@@ -21,7 +21,8 @@ router.get(
 router.get(
   '/admin',
   auth('admin', 'superAdmin'),
-  SpecTemplateController.getTemplatesForAdmin)
+  SpecTemplateController.getTemplatesForAdmin
+)
 
 router.get(
   '/:id',

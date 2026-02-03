@@ -36,11 +36,11 @@ export const verifyUserCredentials = async (
   }
 
   if (user.isDeleted) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'User deleted')
+    throw new AppError(httpStatus.BAD_REQUEST, "You Can't Login Right Now, Please Register with Another Email Address")
   }
 
   if (user.status === 'blocked') {
-    throw new AppError(httpStatus.BAD_REQUEST, 'User blocked')
+    throw new AppError(httpStatus.BAD_REQUEST, "You Can't Login Using This Email Address")
   }
 
   if (password) {
