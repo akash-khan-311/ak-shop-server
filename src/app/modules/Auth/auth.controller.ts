@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable prettier/prettier */
 import config from '../../config'
 import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
@@ -8,33 +7,33 @@ import { AuthService } from './auth.service'
 import { JwtPayload } from 'jsonwebtoken'
 import { createToken } from '../../utils/commonUtils'
 import AppError from '../../errors/AppError'
+import { CartService } from '../cart/cart.service'
+import { guestCookieOptions } from '../cart/cart.utils'
 import { User } from '../user/user.model'
-
+const isProd = process.env.NODE_ENV === 'production'
 const cookieOptions = {
   httpOnly: true,
-  sameSite: "lax" as const,
+  sameSite: 'lax' as const,
   secure: false,
-  path: "/",
-};
-
-
+  path: '/',
+}
 
 export const oauthSuccessHandler = async (req: any, res: any) => {
-  const oauthUser = req.user;
-  const dbUser = await User.findOne({ email: oauthUser.email });
+  const oauthUser = req.user
+  const dbUser = await User.findOne({ email: oauthUser.email })
   if (!dbUser) {
-    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found')
   }
-  const isProd = process.env.NODE_ENV === "production";
-  const cookieOpts = { httpOnly: true, secure: isProd, sameSite: "lax" };
-  if (dbUser.status === "blocked") {
-    res.clearCookie("accessToken", cookieOpts);
-    res.clearCookie("refreshToken", cookieOpts);
+
+  const cookieOpts = { httpOnly: true, secure: isProd, sameSite: 'lax' }
+  if (dbUser.status === 'blocked') {
+    res.clearCookie('accessToken', cookieOpts)
+    res.clearCookie('refreshToken', cookieOpts)
     return res.redirect(
       `${config.client_side_url}/auth/callback?success=0&message=${encodeURIComponent(
-        "You can't login using this gmail"
-      )}`
-    );
+        "You can't login using this gmail",
+      )}`,
+    )
   }
   const jwtPayload = {
     _id: dbUser._id,
@@ -43,45 +42,70 @@ export const oauthSuccessHandler = async (req: any, res: any) => {
     userId: dbUser.id,
     role: dbUser.role,
     createdAt: dbUser.createdAt,
-  };
+  }
 
-  const accessToken = createToken(jwtPayload, config.jwt_access_token_secret!, config.jwt_access_token_expires_in!);
-  const refreshToken = createToken(jwtPayload, config.jwt_refresh_token_secret!, config.jwt_refresh_token_expires_in!);
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_token_secret!,
+    config.jwt_access_token_expires_in!,
+  )
+  const refreshToken = createToken(
+    jwtPayload,
+    config.jwt_refresh_token_secret!,
+    config.jwt_refresh_token_expires_in!,
+  )
 
+  res.cookie('accessToken', accessToken, cookieOpts)
 
-  res.cookie("accessToken", accessToken, cookieOpts);
+  res.cookie('refreshToken', refreshToken, cookieOpts)
+  const guestId = req.cookies?.guestId
+  if (guestId) {
+    await CartService.mergeGuestCartToUserCartFromDB({
+      userId: dbUser._id.toString(),
+      guestId,
+    })
 
-  res.cookie("refreshToken", refreshToken, cookieOpts);
-
+    // clear guestId after merge
+    res.clearCookie('guestId', guestCookieOptions(isProd))
+  }
 
   //  frontend redirect
-  return res.redirect(`${config.client_side_url}/auth/callback?success=1`);
-};
+  return res.redirect(`${config.client_side_url}/auth/callback?success=1`)
+}
 export const loginUser = catchAsync(async (req, res) => {
   const result = await AuthService.loginUserIntoDb(req.body)
-  const { refreshToken, accessToken } = result
+  const { refreshToken, accessToken, user } = result
   res.cookie('refreshToken', refreshToken, {
     secure: config.NODE_ENV === 'production' ? true : false,
-    httpOnly: true
+    httpOnly: true,
   })
+  const guestId = req.cookies?.guestId
+  if (guestId && user?._id) {
+    await CartService.mergeGuestCartToUserCartFromDB({
+      userId: user._id.toString(),
+      guestId,
+    })
+
+    res.clearCookie('guestId', guestCookieOptions(isProd))
+  }
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: 'User logged in successfully',
-    data: { accessToken }
+    data: { accessToken },
   })
 })
 export const logout = catchAsync(async (req, res) => {
-  res.clearCookie("accessToken", cookieOptions);
-  res.clearCookie("refreshToken", cookieOptions);
+  res.clearCookie('accessToken', cookieOptions)
+  res.clearCookie('refreshToken', cookieOptions)
 
   return sendResponse(res, {
     status: httpStatus.OK,
     success: true,
-    message: "Logged out successfully",
+    message: 'Logged out successfully',
     data: null,
-  });
-});
+  })
+})
 
 const refreshToken = catchAsync(async (req, res) => {
   const { refreshToken } = req.cookies
@@ -91,7 +115,7 @@ const refreshToken = catchAsync(async (req, res) => {
     status: httpStatus.OK,
     success: true,
     message: 'Refresh token Fetched successfully',
-    data: result
+    data: result,
   })
 })
 
@@ -99,13 +123,13 @@ const changePassword = catchAsync(async (req, res) => {
   const { ...passwordData } = req.body
   const result = await AuthService.changePasswordIntoDB(
     req.user as JwtPayload,
-    passwordData
+    passwordData,
   )
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: 'Password changes successfully',
-    data: result
+    data: result,
   })
 })
 
@@ -116,16 +140,14 @@ const forgetPassword = catchAsync(async (req, res) => {
     status: httpStatus.OK,
     success: true,
     message: 'Password Reset Link Sent Successfully',
-    data: null
+    data: null,
   })
 })
-
-
 
 export const AuthController = {
   loginUser,
   refreshToken,
   forgetPassword,
   changePassword,
-  logout
+  logout,
 }

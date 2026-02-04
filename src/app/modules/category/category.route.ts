@@ -12,7 +12,7 @@ router.post(
   '/create',
   auth('admin', 'superAdmin'),
   upload.single('image'),
-  // validateRequest(CategoryValidation.createCategoryValidationSchema),
+  validateRequest(CategoryValidation.createCategoryValidationSchema),
   CategoryController.createCategory
 )
 

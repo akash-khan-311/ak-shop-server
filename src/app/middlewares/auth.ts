@@ -26,7 +26,7 @@ const auth = (...rolesAndFlags: Array<TUserRole | boolean>) => {
       throw new AppError(
         401,
         'UNAUTHORIZED',
-        'You are not authorized. No token provided.'
+        'You are not authorized. No token provided.',
       )
     }
     const token = authHeader
@@ -40,7 +40,7 @@ const auth = (...rolesAndFlags: Array<TUserRole | boolean>) => {
       throw new AppError(
         403,
         'FORBIDDEN',
-        'You do not have permission to perform this action.'
+        'You do not have permission to perform this action.',
       )
     }
     // Attach user to request object

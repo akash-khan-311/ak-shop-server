@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import express from 'express'
 import auth from '../../middlewares/auth'
 import multer from 'multer'
@@ -13,27 +12,31 @@ router.post(
   upload.array('images'),
   auth('admin', 'superAdmin', 'vendor'),
   validateRequest(ProductValidation.createProductSchema),
-  ProductController.createProduct
+  ProductController.createProduct,
 )
 router.get('/', ProductController.getAllProducts)
-router.get('/admin', auth('admin', 'superAdmin'), ProductController.getAllProductsForAdmin)
+router.get(
+  '/admin',
+  auth('admin', 'superAdmin'),
+  ProductController.getAllProductsForAdmin,
+)
 router.get('/:id', ProductController.getSingleProduct)
 router.patch(
   '/:id',
   auth('admin', 'superAdmin', 'vendor'),
   upload.array('images', 8),
-  ProductController.updateProduct
+  ProductController.updateProduct,
 )
 router.patch(
   '/publish/:id',
   auth('admin', 'superAdmin'),
-  ProductController.togglePublishProduct
+  ProductController.togglePublishProduct,
 )
 
 router.delete(
   '/delete',
   auth('admin', 'superAdmin', 'vendor'),
-  ProductController.deleteProduct
+  ProductController.deleteProduct,
 )
 
 export const ProductRoutes = router

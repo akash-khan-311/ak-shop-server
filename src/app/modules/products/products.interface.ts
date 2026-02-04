@@ -1,5 +1,4 @@
-/* eslint-disable prettier/prettier */
-import mongoose from "mongoose"
+import mongoose from 'mongoose'
 
 export type TSpecValue = string | number | boolean | string[] | number[]
 export type TProductImages = {
@@ -20,7 +19,7 @@ export type TProduct = {
   length?: number
   width?: number
   description?: string
-  isPublished: boolean,
+  isPublished: boolean
   quantity: number
   availability: 'In Stock' | 'Out of Stock'
   isDeleted: boolean

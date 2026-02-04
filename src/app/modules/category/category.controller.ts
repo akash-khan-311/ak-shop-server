@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import AppError from '../../errors/AppError'
 import catchAsync from '../../utils/catchAsync'
@@ -20,23 +19,22 @@ export const createCategory = catchAsync(async (req, res) => {
     body: {
       name: req.body.name,
       slug: req.body.slug,
-      subcategories
-    }
+      subcategories,
+    },
   })
 
   if (!parsed.success) {
     return res.status(400).json({
       success: false,
       message: 'Validation Error',
-      errors: parsed.error.errors
+      errors: parsed.error.errors,
     })
   }
 
-
-  const userId = (req.user as any)?._id;
+  const userId = (req.user as any)?._id
   const payload = {
     ...req.body,
-    adminId: userId
+    adminId: userId,
   }
 
   const result = await CategoryService.createCategoryIntoDB(payload, req.file)
@@ -45,7 +43,7 @@ export const createCategory = catchAsync(async (req, res) => {
       status: httpStatus.OK,
       success: true,
       message: 'Category created successfully',
-      data: result
+      data: result,
     })
   }
 })
@@ -55,21 +53,21 @@ export const createSubCategory = catchAsync(async (req, res) => {
   if (typeof req.body.brands === 'string') {
     req.body.brands = JSON.parse(req.body.brands)
   }
-  const userId = (req.user as any)?._id;
+  const userId = (req.user as any)?._id
   const payload = {
     ...req.body,
-    adminId: userId
+    adminId: userId,
   }
   const result = await CategoryService.createSubCategoryIntoDb(
     id,
     payload,
-    req.file
+    req.file,
   )
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: 'Subcategory created successfully',
-    data: result
+    data: result,
   })
 })
 export const getSingleSubCategory = catchAsync(async (req, res) => {
@@ -79,7 +77,7 @@ export const getSingleSubCategory = catchAsync(async (req, res) => {
     status: httpStatus.OK,
     success: true,
     message: 'Subcategory found successfully',
-    data: result
+    data: result,
   })
 })
 export const updateSubCategory = catchAsync(async (req, res) => {
@@ -92,13 +90,13 @@ export const updateSubCategory = catchAsync(async (req, res) => {
   const result = await CategoryService.updateSubCategoryIntoDb(
     id,
     req.body,
-    newImageFile
+    newImageFile,
   )
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: 'Updated sub Category successfully',
-    data: result
+    data: result,
   })
 })
 
@@ -109,7 +107,7 @@ export const getAllSubCategories = catchAsync(async (req, res) => {
     status: httpStatus.OK,
     success: true,
     message: 'Subcategories fetched successfully',
-    data: result
+    data: result,
   })
 })
 
@@ -119,7 +117,7 @@ export const getAllCategoriesForAdmin = catchAsync(async (req, res) => {
     status: httpStatus.OK,
     success: true,
     message: 'Fetched All Categories',
-    data: result
+    data: result,
   })
 })
 export const getAllCategoriesForCustomer = catchAsync(async (req, res) => {
@@ -128,11 +126,9 @@ export const getAllCategoriesForCustomer = catchAsync(async (req, res) => {
     status: httpStatus.OK,
     success: true,
     message: 'Fetched All Categories',
-    data: result
+    data: result,
   })
 })
-
-
 
 export const getSingleCategory = catchAsync(async (req, res) => {
   const id = req.params.id
@@ -141,7 +137,7 @@ export const getSingleCategory = catchAsync(async (req, res) => {
     status: httpStatus.OK,
     success: true,
     message: 'Category found successfully',
-    data: result
+    data: result,
   })
 })
 
@@ -151,13 +147,13 @@ export const updateCategory = catchAsync(async (req, res) => {
   const result = await CategoryService.updateCategoryIntoDb(
     id,
     req.body,
-    newImageFile
+    newImageFile,
   )
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: 'Category updated successfully',
-    data: result
+    data: result,
   })
 })
 
@@ -168,9 +164,10 @@ export const toggleCategoryPublished = catchAsync(async (req, res) => {
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
-    message: `Category ${result.published ? 'published' : 'unpublished'
-      } successfully`,
-    data: result
+    message: `Category ${
+      result.published ? 'published' : 'unpublished'
+    } successfully`,
+    data: result,
   })
 })
 
@@ -185,7 +182,7 @@ export const deleteCategory = catchAsync(async (req, res) => {
       ids.length > 1
         ? 'Categories deleted successfully'
         : 'Category deleted successfully',
-    data: result
+    data: result,
   })
 })
 
@@ -200,12 +197,14 @@ export const deleteSubCategory = catchAsync(async (req, res) => {
       ids.length > 1
         ? 'Sub Categories deleted successfully'
         : 'Sub Category deleted successfully',
-    data: result
+    data: result,
   })
 })
 
 export const CategoryController = {
-  createCategory, getAllCategoriesForCustomer, getAllCategoriesForAdmin,
+  createCategory,
+  getAllCategoriesForCustomer,
+  getAllCategoriesForAdmin,
   getSingleCategory,
   updateCategory,
   deleteCategory,
@@ -214,5 +213,5 @@ export const CategoryController = {
   getAllSubCategories,
   getSingleSubCategory,
   updateSubCategory,
-  deleteSubCategory
+  deleteSubCategory,
 }

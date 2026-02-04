@@ -1,7 +1,5 @@
-/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { name } from 'eslint-plugin-prettier/recommended'
 import { cloudinary } from '../../config/cloudinary'
 import AppError from '../../errors/AppError'
 import { TCategory, TSubCategory } from './category.interface'
@@ -9,11 +7,11 @@ import { Category } from './category.model'
 import httpStatus from 'http-status'
 export const createCategoryIntoDB = async (
   payload: TCategory,
-  file?: Express.Multer.File
+  file?: Express.Multer.File,
 ) => {
   const isExists = await Category.findOne({
     name: payload.name,
-    isDeleted: false
+    isDeleted: false,
   })
   if (isExists) {
     throw new AppError(httpStatus.CONFLICT, 'Category already exists 🙂')
@@ -25,13 +23,13 @@ export const createCategoryIntoDB = async (
       const uploadResult = await cloudinary.uploader.upload(
         `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
         {
-          folder: 'categories'
-        }
+          folder: 'categories',
+        },
       )
 
       imageData = {
         url: uploadResult.secure_url,
-        public_id: uploadResult.public_id
+        public_id: uploadResult.public_id,
       }
     } catch (err) {
       throw new AppError(500, 'Image upload failed 😒')
@@ -44,7 +42,7 @@ export const createCategoryIntoDB = async (
 export const createSubCategoryIntoDb = async (
   id: string,
   payload: TSubCategory,
-  file?: Express.Multer.File
+  file?: Express.Multer.File,
 ) => {
   const category = await Category.findOne({ _id: id, isDeleted: false })
   if (!category) {
@@ -59,7 +57,7 @@ export const createSubCategoryIntoDb = async (
   if (isExists) {
     throw new AppError(
       httpStatus.CONFLICT,
-      'Subcategory already exists in this category 😒'
+      'Subcategory already exists in this category 😒',
     )
   }
   let imageData = undefined
@@ -69,26 +67,26 @@ export const createSubCategoryIntoDb = async (
       const uploadResult = await cloudinary.uploader.upload(
         `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
         {
-          folder: 'subcategories'
-        }
+          folder: 'subcategories',
+        },
       )
 
       imageData = {
         url: uploadResult.secure_url,
-        public_id: uploadResult.public_id
+        public_id: uploadResult.public_id,
       }
     } catch (error) {
       throw new AppError(
         httpStatus.INTERNAL_SERVER_ERROR,
-        'Subcategory image upload failed 😒'
+        'Subcategory image upload failed 😒',
       )
     }
   }
 
-  ; (category.subcategories as unknown as any[])?.push({
+  ;(category.subcategories as unknown as any[])?.push({
     ...payload,
     image: imageData,
-    brands: payload.brands || []
+    brands: payload.brands || [],
   })
   await category.save()
   return category
@@ -98,9 +96,9 @@ export const getAllSubCategoriesFromDB = async () => {
   const result = await Category.find(
     {
       isDeleted: false,
-      subcategories: { $exists: true, $ne: [] }
+      subcategories: { $exists: true, $ne: [] },
     },
-    { name: 1, published: 1, subcategories: 1 }
+    { name: 1, published: 1, subcategories: 1 },
   )
 
   const categories = result as any[]
@@ -118,7 +116,7 @@ export const getAllSubCategoriesFromDB = async () => {
         published: cat.published,
         image: sub.image,
         categoryId: cat._id,
-        categoryName: cat.name
+        categoryName: cat.name,
       }))
   })
 
@@ -128,7 +126,7 @@ export const getAllSubCategoriesFromDB = async () => {
 export const getSingleSubCategoryFromDb = async (id: string) => {
   const category = await Category.findOne(
     { 'subcategories._id': id, isDeleted: false },
-    { name: 1, subcategories: 1 }
+    { name: 1, subcategories: 1 },
   )
 
   if (!category) {
@@ -138,7 +136,7 @@ export const getSingleSubCategoryFromDb = async (id: string) => {
   const cat = category as any
   const subcategories = (cat.subcategories as any[]) || []
   const subCategory = subcategories.find(
-    sub => sub?._id?.toString() === id && !sub.isDeleted
+    sub => sub?._id?.toString() === id && !sub.isDeleted,
   )
 
   if (!subCategory) {
@@ -153,7 +151,7 @@ export const getSingleSubCategoryFromDb = async (id: string) => {
     published: cat.published,
     image: subCategory?.image,
     categoryId: cat._id,
-    categoryName: cat.name
+    categoryName: cat.name,
   }
 }
 
@@ -163,36 +161,33 @@ export const getAllCategoriesForAdminFromDB = async () => {
 
     {
       $lookup: {
-        from: "products",
-        let: { catSlug: "$slug" },
+        from: 'products',
+        let: { catSlug: '$slug' },
         pipeline: [
           {
             $match: {
-              $expr: { $eq: ["$categorySlug", "$$catSlug"] },
+              $expr: { $eq: ['$categorySlug', '$$catSlug'] },
               isDeleted: false,
             },
           },
-          { $count: "count" },
+          { $count: 'count' },
         ],
-        as: "productCountArr",
+        as: 'productCountArr',
       },
     },
-
 
     {
       $addFields: {
         productCount: {
-          $ifNull: [{ $arrayElemAt: ["$productCountArr.count", 0] }, 0],
+          $ifNull: [{ $arrayElemAt: ['$productCountArr.count', 0] }, 0],
         },
       },
     },
 
-
     { $project: { productCountArr: 0 } },
 
-
     { $sort: { createdAt: -1 } },
-  ]);
+  ])
 
   return result
 }
@@ -203,36 +198,33 @@ export const getAllCategoriesForCustomer = async () => {
 
     {
       $lookup: {
-        from: "products",
-        let: { catSlug: "$slug" },
+        from: 'products',
+        let: { catSlug: '$slug' },
         pipeline: [
           {
             $match: {
-              $expr: { $eq: ["$categorySlug", "$$catSlug"] },
+              $expr: { $eq: ['$categorySlug', '$$catSlug'] },
               isDeleted: false,
             },
           },
-          { $count: "count" },
+          { $count: 'count' },
         ],
-        as: "productCountArr",
+        as: 'productCountArr',
       },
     },
-
 
     {
       $addFields: {
         productCount: {
-          $ifNull: [{ $arrayElemAt: ["$productCountArr.count", 0] }, 0],
+          $ifNull: [{ $arrayElemAt: ['$productCountArr.count', 0] }, 0],
         },
       },
     },
 
-
     { $project: { productCountArr: 0 } },
 
-
     { $sort: { createdAt: -1 } },
-  ]);
+  ])
 
   return result
 }
@@ -255,7 +247,7 @@ export const toggleCategoryPublishIntoDb = async (id: string) => {
 export const updateCategoryIntoDb = async (
   id: string,
   payload: Partial<TCategory>,
-  newImageFile?: Express.Multer.File
+  newImageFile?: Express.Multer.File,
 ) => {
   const category = await Category.findOne({ _id: id, isDeleted: false })
   if (!category) {
@@ -268,17 +260,17 @@ export const updateCategoryIntoDb = async (
     }
 
     const uploaded = await cloudinary.uploader.upload(newImageFile.path, {
-      folder: 'categories'
+      folder: 'categories',
     })
 
     payload.image = {
       url: uploaded.secure_url,
-      public_id: uploaded.public_id
+      public_id: uploaded.public_id,
     }
   }
   const result = await Category.findOneAndUpdate({ _id: id }, payload, {
     new: true,
-    runValidators: true
+    runValidators: true,
   })
   return result
 }
@@ -290,14 +282,14 @@ export const updateSubCategoryIntoDb = async (
     categoryId: string
     brands: string[]
   },
-  newImageFile?: Express.Multer.File
+  newImageFile?: Express.Multer.File,
 ) => {
   const { name, slug, categoryId, brands } = payload
 
   //  find category that currently owns this subcategory
   const currentCategory = await Category.findOne({
     'subcategories._id': id,
-    isDeleted: false
+    isDeleted: false,
   })
 
   if (!currentCategory) {
@@ -323,16 +315,16 @@ export const updateSubCategoryIntoDb = async (
     // ⬆ upload new image
     const uploadResult = await cloudinary.uploader.upload(
       `data:${newImageFile.mimetype};base64,${newImageFile.buffer.toString(
-        'base64'
+        'base64',
       )}`,
       {
-        folder: 'subcategories'
-      }
+        folder: 'subcategories',
+      },
     )
 
     imageData = {
       url: uploadResult.secure_url,
-      public_id: uploadResult.public_id
+      public_id: uploadResult.public_id,
     }
   }
 
@@ -343,16 +335,16 @@ export const updateSubCategoryIntoDb = async (
     await Category.updateOne(
       {
         _id: currentCategory._id,
-        'subcategories._id': id
+        'subcategories._id': id,
       },
       {
         $set: {
           'subcategories.$.name': name,
           'subcategories.$.slug': slug,
           'subcategories.$.brands': brands,
-          'subcategories.$.image': imageData
-        }
-      }
+          'subcategories.$.image': imageData,
+        },
+      },
     )
 
     return true
@@ -363,7 +355,7 @@ export const updateSubCategoryIntoDb = async (
   // remove from old category
   await Category.updateOne(
     { _id: currentCategory._id },
-    { $pull: { subcategories: { _id: id } } }
+    { $pull: { subcategories: { _id: id } } },
   )
 
   // push into new category
@@ -376,10 +368,10 @@ export const updateSubCategoryIntoDb = async (
           name,
           slug,
           brands,
-          image: imageData
-        }
-      }
-    }
+          image: imageData,
+        },
+      },
+    },
   )
 
   return true
@@ -388,7 +380,7 @@ export const updateSubCategoryIntoDb = async (
 export const deleteCategoryFromDb = async (ids: string[]) => {
   const categories = await Category.find({
     _id: { $in: ids },
-    isDeleted: false
+    isDeleted: false,
   })
   if (!categories.length) {
     throw new AppError(httpStatus.NOT_FOUND, 'Category not found for delete 😒')
@@ -401,7 +393,7 @@ export const deleteCategoryFromDb = async (ids: string[]) => {
   }
   const result = await Category.updateMany(
     { _id: { $in: ids } },
-    { isDeleted: true, published: false }
+    { isDeleted: true, published: false },
   )
 
   return result
@@ -413,13 +405,13 @@ export const deleteSubCategoriesFromDb = async (subCategoryIds: string[]) => {
   }
 
   const categories = await Category.find({
-    'subcategories._id': { $in: subCategoryIds }
+    'subcategories._id': { $in: subCategoryIds },
   })
 
   if (!categories.length) {
     throw new AppError(
       httpStatus.NOT_FOUND,
-      'SubCategory not found in any category 😒'
+      'SubCategory not found in any category 😒',
     )
   }
 
@@ -455,5 +447,5 @@ export const CategoryService = {
   getAllSubCategoriesFromDB,
   getSingleSubCategoryFromDb,
   updateSubCategoryIntoDb,
-  deleteSubCategoriesFromDb
+  deleteSubCategoriesFromDb,
 }

@@ -6,6 +6,7 @@ import { ProductRoutes } from '../modules/products/product.route'
 import { SpecTemplateRoutes } from '../modules/specTemplate/specTemplate.route'
 import { ReviewRoutes } from '../modules/reviews/review.route'
 import { CouponRoutes } from '../modules/coupons/coupon.route'
+import { CartRoutes } from '../modules/cart/cart.route'
 
 /**
  * Main router configuration
@@ -22,14 +23,15 @@ const router = express.Router()
 const moduleRoutes = [
   {
     path: '/users',
-    route: UserRoutes
+    route: UserRoutes,
   },
   { path: '/auth', route: AuthRoutes },
   { path: '/category', route: CategoryRoutes },
   { path: '/spec-template', route: SpecTemplateRoutes },
   { path: '/product', route: ProductRoutes },
   { path: '/reviews', route: ReviewRoutes },
-  { path: '/coupons', route: CouponRoutes }
+  { path: '/coupons', route: CouponRoutes },
+  { path: '/cart', route: CartRoutes },
 ]
 
 /**
