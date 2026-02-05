@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
-import { ICartItem } from './cart.interface'
+import { ICart, ICartItem } from './cart.interface'
 const cartItemSchema = new Schema<ICartItem>(
   {
     productId: {
@@ -28,17 +28,17 @@ const cartSchema = new Schema<ICart>(
       default: null,
       index: true,
     },
-    guestId: { type: String, default: null, index: true },
+    guestIdForCartItem: { type: String, default: null, index: true },
 
     items: { type: [cartItemSchema], default: [] },
   },
   { timestamps: true },
 )
 cartSchema.index({ userId: 1 }, { unique: true, sparse: true })
-cartSchema.index({ guestId: 1 }, { unique: true, sparse: true })
+cartSchema.index({ guestIdForCartItem: 1 }, { unique: true, sparse: true })
 cartSchema.pre('save', function (next) {
   if (this.ownerType === 'user') {
-    this.guestId = null
+    this.guestIdForCartItem = null
   }
   if (this.ownerType === 'guest') {
     this.userId = null

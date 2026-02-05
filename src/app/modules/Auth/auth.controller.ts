@@ -8,16 +8,10 @@ import { JwtPayload } from 'jsonwebtoken'
 import { createToken } from '../../utils/commonUtils'
 import AppError from '../../errors/AppError'
 import { CartService } from '../cart/cart.service'
-import { guestCookieOptions } from '../cart/cart.utils'
 import { User } from '../user/user.model'
+import { guestCookieOptions } from '../../helpers'
+import { WishlistService } from '../wishlist/wishlist.service'
 const isProd = process.env.NODE_ENV === 'production'
-const cookieOptions = {
-  httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: false,
-  path: '/',
-}
-
 export const oauthSuccessHandler = async (req: any, res: any) => {
   const oauthUser = req.user
   const dbUser = await User.findOne({ email: oauthUser.email })
@@ -58,15 +52,19 @@ export const oauthSuccessHandler = async (req: any, res: any) => {
   res.cookie('accessToken', accessToken, cookieOpts)
 
   res.cookie('refreshToken', refreshToken, cookieOpts)
-  const guestId = req.cookies?.guestId
-  if (guestId) {
+  const guestIdForCartItem = req.cookies?.guestIdForCartItem
+  if (guestIdForCartItem) {
     await CartService.mergeGuestCartToUserCartFromDB({
       userId: dbUser._id.toString(),
-      guestId,
+      guestIdForCartItem,
     })
-
-    // clear guestId after merge
-    res.clearCookie('guestId', guestCookieOptions(isProd))
+  }
+  const guestIdForWishlist = req.cookies?.guestIdForWishlist
+  if (guestIdForWishlist) {
+    await WishlistService.mergeGuestWishlistToUserWishlistFromDB({
+      userId: dbUser._id.toString(),
+      guestIdForWishlist,
+    })
   }
 
   //  frontend redirect
@@ -79,14 +77,19 @@ export const loginUser = catchAsync(async (req, res) => {
     secure: config.NODE_ENV === 'production' ? true : false,
     httpOnly: true,
   })
-  const guestId = req.cookies?.guestId
-  if (guestId && user?._id) {
+  const guestIdForCartItem = req.cookies?.guestIdForCartItem
+  if (guestIdForCartItem && user?._id) {
     await CartService.mergeGuestCartToUserCartFromDB({
       userId: user._id.toString(),
-      guestId,
+      guestIdForCartItem,
     })
-
-    res.clearCookie('guestId', guestCookieOptions(isProd))
+  }
+  const guestIdForWishlist = req.cookies?.guestIdForWishlist
+  if (guestIdForWishlist) {
+    await WishlistService.mergeGuestWishlistToUserWishlistFromDB({
+      userId: user._id.toString(),
+      guestIdForWishlist,
+    })
   }
   sendResponse(res, {
     status: httpStatus.OK,
@@ -96,8 +99,9 @@ export const loginUser = catchAsync(async (req, res) => {
   })
 })
 export const logout = catchAsync(async (req, res) => {
-  res.clearCookie('accessToken', cookieOptions)
-  res.clearCookie('refreshToken', cookieOptions)
+  res.clearCookie('accessToken', guestCookieOptions(isProd))
+  res.clearCookie('refreshToken', guestCookieOptions(isProd))
+  // res.clearCookie('guestIdForCartItem', guestCookieOptions(isProd))
 
   return sendResponse(res, {
     status: httpStatus.OK,

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-export type CartOwnerType = 'user' | 'vendor'
+export type CartOwnerType = 'user' | 'guest'
 export type ICartItem = {
   productId: mongoose.Types.ObjectId
   quantity: number
@@ -9,8 +9,8 @@ export type ICartItem = {
 export type ICart = {
   _id?: string
   ownerType: CartOwnerType
-  userId?: mongoose.Types.ObjectId
-  guestId?: string | null
+  userId?: mongoose.Types.ObjectId | null
+  guestIdForCartItem?: string | null
   items: ICartItem[]
   createdAt?: Date
   updatedAt?: Date

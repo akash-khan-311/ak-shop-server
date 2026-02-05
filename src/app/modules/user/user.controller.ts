@@ -4,20 +4,25 @@ import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
 import { UserService } from './user.service'
 import httpStatus from 'http-status'
-import { guestCookieOptions } from '../cart/cart.utils'
 import { CartService } from '../cart/cart.service'
-const isProd = process.env.NODE_ENV === 'production'
+import { guestCookieOptions, isProd } from '../../helpers'
+import { WishlistService } from '../wishlist/wishlist.service'
 export const registerUser = catchAsync(async (req, res) => {
   const result = await UserService.createUserIntoDb(req.body)
   const { refreshToken, accessToken, user } = result
-  const guestId = req.cookies?.guestId
-  if (guestId && user?._id) {
+  const guestIdForCartItem = req.cookies?.guestIdForCartItem
+  if (guestIdForCartItem && user?._id) {
     await CartService.mergeGuestCartToUserCartFromDB({
       userId: user._id.toString(),
-      guestId,
+      guestIdForCartItem,
     })
-
-    res.clearCookie('guestId', guestCookieOptions(isProd))
+  }
+  const guestIdForWishlist = req.cookies?.guestIdForWishlist
+  if (guestIdForWishlist) {
+    await WishlistService.mergeGuestWishlistToUserWishlistFromDB({
+      userId: user._id.toString(),
+      guestIdForWishlist,
+    })
   }
   sendResponse(res, {
     status: httpStatus.OK,

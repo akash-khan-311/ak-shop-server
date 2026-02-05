@@ -24,7 +24,7 @@ export const removeCartItemValidationSchema = z.object({
 })
 const mergeGuestCartValidationSchema = z.object({
   body: z.object({
-    guestId: z.string().min(1, 'guestId is required'),
+    guestIdForCartItem: z.string().min(1, 'guestId for cart is required'),
   }),
 })
 

@@ -1,93 +1,91 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { Cart } from './cart.model'
+import { Wishlist } from './wishlist.model'
 import mongoose from 'mongoose'
 import AppError from '../../errors/AppError'
 import httpStatus from 'http-status'
-
-export const findCartByOwnerForCart = async (owner: {
+export const findWishlistByOwner = async (owner: {
   userId?: string | null
-  guestIdForCartItem?: string | null
+  guestIdForWishlist?: string | null
 }) => {
   if (owner.userId) {
-    return Cart.findOne({
+    return Wishlist.findOne({
       ownerType: 'user',
       userId: new mongoose.Types.ObjectId(owner.userId),
+      isDeleted: false,
     })
   }
-  if (owner.guestIdForCartItem) {
-    return Cart.findOne({
+  if (owner.guestIdForWishlist) {
+    return Wishlist.findOne({
       ownerType: 'guest',
-      guestIdForCartItem: owner.guestIdForCartItem,
+      guestIdForWishlist: owner.guestIdForWishlist,
+      isDeleted: false,
     })
   }
   return null
 }
-
-export const createCartForOwner = async (owner: {
+export const createWishlistForOwner = async (owner: {
   userId?: string | null
-  guestIdForCartItem?: string | null
+  guestIdForWishlist?: string | null
 }) => {
   if (owner.userId) {
-    return Cart.create({
+    return Wishlist.create({
       ownerType: 'user',
       userId: new mongoose.Types.ObjectId(owner.userId),
-      guestIdForCartItem: null,
+      guestIdForWishlist: null,
       items: [],
+      isDeleted: false,
     })
   }
 
-  if (owner.guestIdForCartItem) {
-    return Cart.create({
+  if (owner.guestIdForWishlist) {
+    return Wishlist.create({
       ownerType: 'guest',
       userId: null,
-      guestIdForCartItem: owner.guestIdForCartItem,
+      guestIdForWishlist: owner.guestIdForWishlist,
       items: [],
+      isDeleted: false,
     })
   }
 
   throw new AppError(
     httpStatus.BAD_REQUEST,
-    'Cart owner not found (userId/guestId missing)',
+    'Wishlist owner not found (userId/guestId missing)',
   )
 }
-
-export const findOrCreateCart = async (owner: {
+export const findOrCreateWishlist = async (owner: {
   userId?: string | null
-  guestIdForCartItem?: string | null
+  guestIdForWishlist?: string | null
 }) => {
-  let cart = await findCartByOwnerForCart(owner)
-
-  if (!cart) {
-    cart = await createCartForOwner(owner)
-  }
-
-  if (!cart) {
-    // extra guard (practically should never happen now)
+  let wishlist = await findWishlistByOwner(owner)
+  if (!wishlist) wishlist = await createWishlistForOwner(owner)
+  if (!wishlist)
     throw new AppError(
       httpStatus.INTERNAL_SERVER_ERROR,
-      'Failed to create cart',
+      'Failed to create wishlist',
     )
-  }
-
-  return cart
+  return wishlist
 }
 
-export const getCartDetailsViewFromDB = async (owner: {
+export const getWishlistDetailsViewFromDB = async (owner: {
   userId?: string | null
-  guestIdForCartItem?: string | null
+  guestIdForWishlist?: string | null
 }) => {
   const match = owner.userId
-    ? { ownerType: 'user', userId: new mongoose.Types.ObjectId(owner.userId) }
-    : { ownerType: 'guest', guestIdForCartItem: owner.guestIdForCartItem }
+    ? {
+        ownerType: 'user',
+        userId: new mongoose.Types.ObjectId(owner.userId),
+        isDeleted: false,
+      }
+    : {
+        ownerType: 'guest',
+        guestIdForWishlist: owner.guestIdForWishlist,
+        isDeleted: false,
+      }
 
-  const result = await Cart.aggregate([
+  const result = await Wishlist.aggregate([
     { $match: match },
-
-    // items flatten
     { $unwind: { path: '$items', preserveNullAndEmptyArrays: true } },
 
-    // join product
     {
       $lookup: {
         from: 'products',
@@ -98,35 +96,34 @@ export const getCartDetailsViewFromDB = async (owner: {
     },
     { $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
 
-    // shape each item
     {
       $project: {
         ownerType: 1,
         userId: 1,
-        guestIdForCartItem: 1,
+        guestIdForWishlist: 1,
         createdAt: 1,
         updatedAt: 1,
-
         item: {
           product: {
             _id: '$product._id',
             name: '$product.productName',
             price: '$product.price',
             images: '$product.images',
+            status: '$product.availability',
+            slug: '$product.slug',
           },
-          quantity: '$items.quantity',
           variantId: '$items.variantId',
+          addedAt: '$items.addedAt',
         },
       },
     },
 
-    // regroup items
     {
       $group: {
         _id: '$_id',
         ownerType: { $first: '$ownerType' },
         userId: { $first: '$userId' },
-        guestIdForCartItem: { $first: '$guestIdForCartItem' },
+        guestIdForWishlist: { $first: '$guestIdForWishlist' },
         createdAt: { $first: '$createdAt' },
         updatedAt: { $first: '$updatedAt' },
         items: { $push: '$item' },
@@ -134,10 +131,10 @@ export const getCartDetailsViewFromDB = async (owner: {
     },
   ])
 
-  // if cart has no items, unwind+group makes items=[{product:null,...}] sometimes
-  const cart = result?.[0]
-  if (!cart) return null
+  const wishlist = result?.[0] || null
+  if (!wishlist) return null
 
-  cart.items = (cart.items || []).filter((i: any) => i?.product?._id)
-  return cart
+  // remove null products (deleted/unavailable product)
+  wishlist.items = (wishlist.items || []).filter((i: any) => i?.product?._id)
+  return wishlist
 }

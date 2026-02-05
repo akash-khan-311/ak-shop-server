@@ -1,22 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status'
-import { generateGuestId, guestCookieOptions } from './cart.utils'
+
 import catchAsync from '../../utils/catchAsync'
 import sendResponse from '../../utils/sendResponse'
 import { CartService } from './cart.service'
-const isProd = process.env.NODE_ENV === 'production'
+import { generateGuestId, guestCookieOptions, isProd } from '../../helpers'
 
 const resolveOwner = (req: any, res: any) => {
   const userId = (req.user as any)?._id?.toString() || null
-  let guestId = req.cookies?.guestId || null
+  let guestIdForCartItem = req.cookies?.guestIdForCartItem || null
 
   // if no login + no guest cookie -> create
-  if (!userId && !guestId) {
-    guestId = generateGuestId()
-    res.cookie('guestId', guestId, guestCookieOptions(isProd))
+  if (!userId && !guestIdForCartItem) {
+    guestIdForCartItem = generateGuestId()
+    res.cookie(
+      'guestIdForCartItem',
+      guestIdForCartItem,
+      guestCookieOptions(isProd),
+    )
   }
 
-  return { userId, guestId }
+  return { userId, guestIdForCartItem }
 }
 
 export const getMyCart = catchAsync(async (req, res) => {
@@ -95,24 +99,25 @@ export const mergeGuestCartToUserCart = catchAsync(
       })
     }
 
-    const guestId = req.cookies?.guestId || req.body.guestId
-    if (!guestId) {
+    const guestIdForCartItem =
+      req.cookies?.guestIdForCartItem || req.body.guestIdForCartItem
+    if (!guestIdForCartItem) {
       return sendResponse(res, {
         status: httpStatus.BAD_REQUEST,
         success: false,
-        message: 'guestId not found',
+        message: 'guestIdForCartItem not found',
         data: null,
       })
     }
 
     const result = await CartService.mergeGuestCartToUserCartFromDB({
       userId,
-      guestId,
+      guestIdForCartItem,
     })
 
     // merge done -> clear cookie
     if (result.merged) {
-      res.clearCookie('guestId', guestCookieOptions(isProd))
+      res.clearCookie('guestIdForCartItem', guestCookieOptions(isProd))
     }
 
     sendResponse(res, {
