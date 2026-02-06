@@ -8,6 +8,7 @@ import { ReviewRoutes } from '../modules/reviews/review.route'
 import { CouponRoutes } from '../modules/coupons/coupon.route'
 import { CartRoutes } from '../modules/cart/cart.route'
 import { WishlistRoutes } from '../modules/wishlist/wishlist.route'
+import { CheckoutRoutes } from '../modules/checkout/checkout.route'
 
 /**
  * Main router configuration
@@ -34,6 +35,7 @@ const moduleRoutes = [
   { path: '/coupons', route: CouponRoutes },
   { path: '/cart', route: CartRoutes },
   { path: '/wishlist', route: WishlistRoutes },
+  { path: '/checkout', route: CheckoutRoutes },
 ]
 
 /**
